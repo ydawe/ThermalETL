@@ -1,0 +1,286 @@
+{
+  "region": "sample",
+  "bbox": [
+    20.8,
+    52.1,
+    21.3,
+    52.4
+  ],
+  "h3_resolution": 5,
+  "generated_at": "2026-11-14T16:40:47+00:00",
+  "etl_version": "0.1.0",
+  "data_source": "synthetic",
+  "synthetic": true,
+  "years": [
+    2018,
+    2023
+  ],
+  "calendar_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "last_date": "2023-12-31",
+  "overlap_years": [
+    2012,
+    2023
+  ],
+  "min_support": 5,
+  "filters": {
+    "modis_confidence_min": 30,
+    "viirs_confidence": [
+      "n",
+      "h"
+    ]
+  },
+  "sources": {
+    "modis": "MODIS_SP",
+    "viirs": "VIIRS_SNPP_SP",
+    "modis_nrt": "MODIS_NRT",
+    "viirs_nrt": "VIIRS_SNPP_NRT"
+  },
+  "harmonization": "harm_n = viirs_n if viirs_n > 0 else modis_n * k(h3, month)",
+  "k_fallback": [
+    "hex",
+    "res4",
+    "res3",
+    "region"
+  ],
+  "counts": {
+    "detections_modis": 1441,
+    "detections_viirs": 6767,
+    "hexes": 11,
+    "monthly_rows": 546
+  },
+  "k_level_counts": {
+    "hex": 54,
+    "region": 11,
+    "res3": 12,
+    "res4": 55
+  },
+  "regional_k": {
+    "overall": 4.696,
+    "by_month": [
+      5.9375,
+      4.2742,
+      4.5789,
+      4.5534,
+      4.7373,
+      4.4103,
+      4.6633,
+      4.7867,
+      5.0822,
+      5.5152,
+      4.9444,
+      13.0
+    ]
+  },
+  "validation": {
+    "holdout_year": 2023,
+    "n_cells_months": 63,
+    "actual_viirs_total": 1407.0,
+    "hex_k": {
+      "mae": 5.4954,
+      "rel_error": 0.2461,
+      "bias": 1.9511,
+      "pred_total": 1529.92
+    },
+    "regional_k": {
+      "mae": 6.4723,
+      "rel_error": 0.2898,
+      "bias": 1.9585,
+      "pred_total": 1530.38
+    },
+    "mae_improvement_vs_regional": 0.1509,
+    "k_level_counts": {
+      "hex": 46,
+      "res4": 13,
+      "region": 1,
+      "res3": 3
+    },
+    "train_regional_k_overall": 4.7314
+  },
+  "summary": {
+    "years": [
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023
+    ],
+    "matrix": {
+      "2018": [
+        13.0,
+        33.0,
+        214.0,
+        193.0,
+        67.0,
+        23.0,
+        63.0,
+        137.5,
+        47.0,
+        21.0,
+        13.0,
+        6.0
+      ],
+      "2019": [
+        13.0,
+        32.0,
+        238.57,
+        219.79,
+        68.0,
+        22.0,
+        59.84,
+        132.0,
+        44.0,
+        25.82,
+        13.0,
+        6.0
+      ],
+      "2020": [
+        24.44,
+        56.0,
+        408.42,
+        353.0,
+        131.76,
+        42.94,
+        97.0,
+        227.0,
+        83.0,
+        43.0,
+        24.7,
+        13.0
+      ],
+      "2021": [
+        20.0,
+        53.0,
+        374.0,
+        313.0,
+        108.0,
+        31.0,
+        92.0,
+        213.9,
+        79.0,
+        36.0,
+        20.75,
+        11.0
+      ],
+      "2022": [
+        17.17,
+        29.0,
+        221.0,
+        190.0,
+        70.0,
+        18.0,
+        58.48,
+        127.0,
+        41.0,
+        17.0,
+        14.88,
+        5.0
+      ],
+      "2023": [
+        19.0,
+        62.0,
+        386.0,
+        357.0,
+        119.0,
+        40.0,
+        101.0,
+        246.0,
+        77.0,
+        45.0,
+        23.7,
+        11.0
+      ]
+    },
+    "monthly_median": [
+      18.08,
+      43.0,
+      306.29,
+      266.39,
+      89.0,
+      27.0,
+      77.5,
+      175.7,
+      62.0,
+      30.91,
+      17.81,
+      8.5
+    ],
+    "monthly_p90": [
+      22.22,
+      59.0,
+      397.21,
+      355.0,
+      125.38,
+      41.47,
+      99.0,
+      236.5,
+      81.0,
+      44.0,
+      24.2,
+      12.0
+    ],
+    "monthly_mean": [
+      17.77,
+      44.17,
+      307.0,
+      270.96,
+      93.96,
+      29.49,
+      78.55,
+      180.57,
+      61.83,
+      31.3,
+      18.34,
+      8.67
+    ],
+    "critical_months": [
+      3,
+      4,
+      8
+    ],
+    "critical_month_names": [
+      "Mar",
+      "Apr",
+      "Aug"
+    ],
+    "most_active_years": [
+      {
+        "year": 2020,
+        "total": 1504.27
+      },
+      {
+        "year": 2023,
+        "total": 1486.7
+      },
+      {
+        "year": 2021,
+        "total": 1351.65
+      }
+    ],
+    "season_label": "Spring (Mar–Apr) with a secondary summer peak (Aug)",
+    "latest": {
+      "year": 2023,
+      "month": 12,
+      "value": 11.0,
+      "median": 8.5,
+      "p90": 12.0,
+      "anomaly_ratio": 1.294,
+      "anomaly": "above"
+    }
+  },
+  "attribution": "Data: NASA FIRMS (MODIS C6.1, VIIRS S-NPP). Not affiliated with or endorsed by NASA.",
+  "files": {
+    "hexes": "hexes.json",
+    "coef": "coef.json",
+    "meta": "meta.json",
+    "monthly": "monthly.json.gz",
+    "tiled": false
+  }
+}

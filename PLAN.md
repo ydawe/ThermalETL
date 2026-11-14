@@ -50,19 +50,19 @@
 **Goal:** Fetch → normalize → H3 aggregate → harmonize → validate → publish JSON under `web/public/data/{region}/`.
 
 ### Tasks
-- [ ] `etl/` package: fetch, normalize, aggregate, coefficients, harmonize, calendar/anomaly, validate, export
-- [ ] FIRMS area API fetch in day chunks + retry/backoff + checkpoint
-- [ ] Fallback: FIRMS yearly country CSVs clipped to bbox
-- [ ] NRT last 10 days (MODIS_NRT + VIIRS_SNPP_NRT), dedupe vs standard
-- [ ] Parquet schema + confidence filters + H3 res 5
-- [ ] `h3_monthly`, `k(h3,m)` with fallback chain hex→parent4→parent3→region
-- [ ] `harm_n` = VIIRS when present else MODIS×k
-- [ ] Calendar medians / p90 / anomaly flags
-- [ ] Hold-out year validation vs regional-ratio baseline → `meta.json`
-- [ ] Outputs: `hexes.json`, `monthly.json.gz`, `coef.json`, `meta.json` (<20 MB or tiled)
-- [ ] Sample dataset (tiny bbox, 2 years) for immediate frontend
-- [ ] `pytest` coverage for coef / fallback / zero-div / harm / anomaly / dedupe
-- [ ] Commit Phase 1
+- [x] `etl/` package: fetch, normalize, aggregate, coefficients, harmonize, calendar/anomaly, validate, export
+- [x] FIRMS area API fetch in day chunks + retry/backoff + checkpoint
+- [x] Fallback: FIRMS yearly country CSVs clipped to bbox
+- [x] NRT last 10 days (MODIS_NRT + VIIRS_SNPP_NRT), dedupe vs standard
+- [x] Parquet schema + confidence filters + H3 res 5
+- [x] `h3_monthly`, `k(h3,m)` with fallback chain hex→parent4→parent3→region
+- [x] `harm_n` = VIIRS when present else MODIS×k
+- [x] Calendar medians / p90 / anomaly flags
+- [x] Hold-out year validation vs regional-ratio baseline → `meta.json`
+- [x] Outputs: `hexes.json`, `monthly.json.gz`, `coef.json`, `meta.json` (<20 MB or tiled)
+- [x] Sample dataset (tiny bbox, 2 years) for immediate frontend
+- [x] `pytest` coverage for coef / fallback / zero-div / harm / anomaly / dedupe
+- [x] Commit Phase 1
 
 ### Acceptance
 - `pytest` green; sample data loads; `meta.json` has validation MAE for hex-k vs regional-k; files < 20 MB.
@@ -72,11 +72,11 @@
 ## Phase 2 — GitHub Actions
 
 ### Tasks
-- [ ] `etl-backfill.yml` — workflow_dispatch, year/sensor matrix, aggregate, commit data
-- [ ] `etl-update.yml` — weekly cron + dispatch, NRT merge, commit if changed
-- [ ] `ci.yml` — pytest + web lint/typecheck/build
-- [ ] Sample data committed so frontend builds without waiting for backfill
-- [ ] Commit Phase 2
+- [x] `etl-backfill.yml` — workflow_dispatch, year/sensor matrix, aggregate, commit data
+- [x] `etl-update.yml` — weekly cron + dispatch, NRT merge, commit if changed
+- [x] `ci.yml` — pytest + web lint/typecheck/build
+- [x] Sample data committed so frontend builds without waiting for backfill
+- [x] Commit Phase 2
 
 ### Acceptance
 - Workflows parse; CI runs tests/build; sample data present under `web/public/data/`.
@@ -148,7 +148,7 @@
 | Phase | Status | Notes |
 |-------|--------|-------|
 | 0 | DONE | Skeleton + PLAN + README + Apache-2.0 |
-| 1 | IN PROGRESS | |
-| 2 | PENDING | |
-| 3 | PENDING | |
-| 4 | PENDING | |
+| 1 | DONE | pytest 31 green; sample hex-k beats regional ~15% |
+| 2 | DONE | ci + backfill + weekly update workflows |
+| 3 | PENDING |
+| 4 | PENDING |

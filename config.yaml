@@ -25,8 +25,8 @@ filters:
   viirs_confidence: ["n", "h"]
 
 fetch:
-  # FIRMS area API max days per request (safe default)
-  max_days_per_request: 10
+  # FIRMS area API: valid day range is 1..5
+  max_days_per_request: 5
   retry_max: 5
   retry_backoff_seconds: 5
   sleep_between_requests_seconds: 1.0
@@ -44,4 +44,5 @@ sample:
   # Tiny bbox around Warsaw for immediate frontend / CI
   name: sample
   bbox: [20.8, 52.1, 21.3, 52.4]
-  years: [2022, 2023]
+  # Enough overlap years so hold-out validation is meaningful for the demo
+  years: [2018, 2019, 2020, 2021, 2022, 2023]
