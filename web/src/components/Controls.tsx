@@ -127,13 +127,25 @@ export function AreaControls({
     <fieldset>
       <legend className="mb-1 text-xs font-semibold uppercase tracking-wider text-ink-mute">Area</legend>
       <div className="flex flex-wrap gap-1.5">
-        <button type="button" className={drawMode === "rect" ? btnOn : btnIdle} aria-pressed={drawMode === "rect"} onClick={() => onDrawMode(drawMode === "rect" ? "none" : "rect")}>
+        <button
+          type="button"
+          data-testid="draw-rect"
+          className={drawMode === "rect" ? btnOn : btnIdle}
+          aria-pressed={drawMode === "rect"}
+          onClick={() => onDrawMode(drawMode === "rect" ? "none" : "rect")}
+        >
           Draw rectangle
         </button>
-        <button type="button" className={drawMode === "polygon" ? btnOn : btnIdle} aria-pressed={drawMode === "polygon"} onClick={() => onDrawMode(drawMode === "polygon" ? "none" : "polygon")}>
+        <button
+          type="button"
+          data-testid="draw-polygon"
+          className={drawMode === "polygon" ? btnOn : btnIdle}
+          aria-pressed={drawMode === "polygon"}
+          onClick={() => onDrawMode(drawMode === "polygon" ? "none" : "polygon")}
+        >
           Draw polygon
         </button>
-        <button type="button" className={btnIdle} onClick={onReset}>
+        <button type="button" data-testid="draw-reset" className={btnIdle} onClick={onReset}>
           Whole region
         </button>
       </div>
@@ -155,8 +167,8 @@ export function AreaControls({
       {error && (
         <p id="area-error" role="alert" className="mt-1 text-xs text-ember-deep">{error}</p>
       )}
-      <p className="mt-2 text-sm text-ink" aria-live="polite">
-        <span className="font-semibold tabular-nums">{selectedCount}</span>
+      <p className="mt-2 text-sm text-ink" aria-live="polite" data-testid="selection-status">
+        <span className="font-semibold tabular-nums" data-testid="selected-count">{selectedCount}</span>
         <span className="text-ink-soft"> of {totalCount} hexagons selected · {selectionLabel}</span>
       </p>
     </fieldset>

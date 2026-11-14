@@ -8,7 +8,7 @@ import {
   areaCalendar, csvForSelection, downloadText, fmt, formatMonth, fullRange, hexDetail, hexTotals,
   METRIC_LABEL, selectedCells, summarize,
 } from "@/lib/analysis";
-import { cellsInPolygon, cellsInRadius, circlePolygon, type LonLat } from "@/lib/geo";
+import { cellsInPolygon, cellsInRadius, circlePolygon, closeRing, type LonLat } from "@/lib/geo";
 import type { Dataset, Meta, Metric, MonthRange, Selection } from "@/lib/types";
 import type { DrawMode } from "./HexMap";
 import FireCalendar from "./FireCalendar";
@@ -120,8 +120,14 @@ function Explorer({ ds }: { ds: Dataset }) {
 
   const onDrawComplete = useCallback(
     (ring: LonLat[]) => {
+      const closed = closeRing(ring);
       setDrawMode("none");
-      setSelection({ kind: "shape", label: "your drawn shape", polygon: ring, cells: cellsInPolygon(ring, res) });
+      setSelection({
+        kind: "shape",
+        label: "your drawn shape",
+        polygon: closed,
+        cells: cellsInPolygon(closed, res),
+      });
     },
     [res],
   );

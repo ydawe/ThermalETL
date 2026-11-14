@@ -10,10 +10,14 @@ import { cellToBoundary } from "h3-js";
 import { BASEMAP_STYLE } from "@/lib/config";
 import { countScale, viridis } from "@/lib/colors";
 import { fmt } from "@/lib/analysis";
-import { rectPolygon, type LonLat } from "@/lib/geo";
+import { closeRing, rectPolygon, type LonLat } from "@/lib/geo";
 import type { HexInfo } from "@/lib/types";
 
 export type DrawMode = "none" | "rect" | "polygon";
+
+const CLOSE_PX = 14;
+/** Ignore a click that is the first half of a double-click finish. */
+const DBLCLICK_GUARD_MS = 350;
 
 interface HexDatum {
   h3: string;
@@ -50,9 +54,18 @@ export default function HexMap(props: HexMapProps) {
   const [hover, setHover] = useState<{ x: number; y: number; d: HexDatum } | null>(null);
   const [draft, setDraft] = useState<LonLat[]>([]);
   const [cursor, setCursor] = useState<LonLat | null>(null);
+  /** Synchronous draft for click handlers (React state alone races on rapid / test clicks). */
+  const draftPoints = useRef<LonLat[]>([]);
 
-  const drawRef = useRef({ drawMode, draft, onDrawComplete, onHexClick });
-  drawRef.current = { drawMode, draft, onDrawComplete, onHexClick };
+  const commitDraft = (pts: LonLat[]) => {
+    draftPoints.current = pts;
+    setDraft(pts);
+  };
+
+  const drawRef = useRef({ drawMode, onDrawComplete, onHexClick });
+  drawRef.current = { drawMode, onDrawComplete, onHexClick };
+  /** Delayed vertex commit so a double-click can cancel the pending add and finish cleanly. */
+  const pendingVertex = useRef<{ point: LonLat; timer: ReturnType<typeof setTimeout> } | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -96,43 +109,111 @@ export default function HexMap(props: HexMapProps) {
     mapRef.current = map;
     overlayRef.current = overlay;
 
+    const clearPendingVertex = () => {
+      if (pendingVertex.current) {
+        clearTimeout(pendingVertex.current.timer);
+        pendingVertex.current = null;
+      }
+    };
+
+    const finishPolygon = (pts: LonLat[], done: (ring: LonLat[]) => void) => {
+      clearPendingVertex();
+      if (pts.length < 3) return;
+      commitDraft([]);
+      setCursor(null);
+      done(closeRing(pts));
+    };
+
     const onClick = (e: maplibregl.MapMouseEvent) => {
-      const { drawMode: mode, draft: pts, onDrawComplete: done } = drawRef.current;
+      const { drawMode: mode, onDrawComplete: done } = drawRef.current;
+      const pts = draftPoints.current;
       const p: LonLat = [e.lngLat.lng, e.lngLat.lat];
       if (mode === "rect") {
-        if (pts.length === 0) setDraft([p]);
+        clearPendingVertex();
+        if (pts.length === 0) commitDraft([p]);
         else {
-          setDraft([]);
+          if (pts[0][0] === p[0] && pts[0][1] === p[1]) return;
+          commitDraft([]);
+          setCursor(null);
           done(rectPolygon(pts[0], p));
         }
       } else if (mode === "polygon") {
         if (pts.length >= 3) {
           const first = map.project(pts[0] as [number, number]);
-          if (Math.hypot(first.x - e.point.x, first.y - e.point.y) < 12) {
-            setDraft([]);
-            done([...pts, pts[0]]);
+          if (Math.hypot(first.x - e.point.x, first.y - e.point.y) < CLOSE_PX) {
+            finishPolygon(pts, done);
             return;
           }
+          // Already have a closable ring: delay commit so dblclick can finish without an extra vertex.
+          clearPendingVertex();
+          pendingVertex.current = {
+            point: p,
+            timer: setTimeout(() => {
+              pendingVertex.current = null;
+              commitDraft([...draftPoints.current, p]);
+            }, DBLCLICK_GUARD_MS),
+          };
+          return;
         }
-        setDraft([...pts, p]);
+        clearPendingVertex();
+        commitDraft([...pts, p]);
       }
     };
     const onMove = (e: maplibregl.MapMouseEvent) => {
       if (drawRef.current.drawMode !== "none") setCursor([e.lngLat.lng, e.lngLat.lat]);
     };
     const onDbl = (e: maplibregl.MapMouseEvent) => {
-      const { drawMode: mode, draft: pts, onDrawComplete: done } = drawRef.current;
-      if (mode === "polygon" && pts.length >= 3) {
-        e.preventDefault();
-        setDraft([]);
-        done([...pts, pts[0]]);
+      const { drawMode: mode, onDrawComplete: done } = drawRef.current;
+      if (mode !== "polygon") return;
+      e.preventDefault();
+      clearPendingVertex();
+      finishPolygon(draftPoints.current, done);
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && drawRef.current.drawMode !== "none") {
+        clearPendingVertex();
       }
     };
+    window.addEventListener("keydown", onKey);
     map.on("click", onClick);
     map.on("mousemove", onMove);
     map.on("dblclick", onDbl);
 
+    // Stable hooks for Playwright / manual QA (lon/lat, not fragile CSS pixels).
+    type TestApi = {
+      clickLngLat: (lng: number, lat: number) => void;
+      dblClickLngLat: (lng: number, lat: number) => void;
+      getDraftCount: () => number;
+    };
+    const testApi: TestApi = {
+      clickLngLat(lng, lat) {
+        const point = map.project([lng, lat]);
+        onClick({
+          lngLat: { lng, lat } as maplibregl.LngLat,
+          point,
+          originalEvent: new MouseEvent("click"),
+        } as maplibregl.MapMouseEvent);
+      },
+      dblClickLngLat(lng, lat) {
+        const point = map.project([lng, lat]);
+        onDbl({
+          lngLat: { lng, lat } as maplibregl.LngLat,
+          point,
+          originalEvent: new MouseEvent("dblclick"),
+          preventDefault() {},
+        } as maplibregl.MapMouseEvent);
+      },
+      getDraftCount() {
+        return draftPoints.current.length;
+      },
+    };
+    (window as unknown as { __thermaletlMap?: TestApi }).__thermaletlMap = testApi;
+
     return () => {
+      clearPendingVertex();
+      window.removeEventListener("keydown", onKey);
+      delete (window as unknown as { __thermaletlMap?: TestApi }).__thermaletlMap;
       map.remove();
       mapRef.current = null;
       overlayRef.current = null;
@@ -144,7 +225,11 @@ export default function HexMap(props: HexMapProps) {
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    setDraft([]);
+    if (pendingVertex.current) {
+      clearTimeout(pendingVertex.current.timer);
+      pendingVertex.current = null;
+    }
+    commitDraft([]);
     setCursor(null);
     if (drawMode === "none") {
       map.doubleClickZoom.enable();
@@ -152,6 +237,8 @@ export default function HexMap(props: HexMapProps) {
     } else {
       map.doubleClickZoom.disable();
       map.getCanvas().style.cursor = "crosshair";
+      // Focus wrapper so Esc / Enter work without an extra tab.
+      containerRef.current?.parentElement?.focus({ preventScroll: true });
     }
   }, [drawMode]);
 
@@ -256,13 +343,25 @@ export default function HexMap(props: HexMapProps) {
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (drawMode === "none") return;
     if (e.key === "Escape") {
-      setDraft([]);
+      if (pendingVertex.current) {
+        clearTimeout(pendingVertex.current.timer);
+        pendingVertex.current = null;
+      }
+      commitDraft([]);
+      setCursor(null);
       onDrawCancel();
-    } else if (e.key === "Enter" && drawMode === "polygon" && draft.length >= 3) {
-      onDrawComplete([...draft, draft[0]]);
-      setDraft([]);
-    } else if (e.key === "Backspace" && draft.length) {
-      setDraft(draft.slice(0, -1));
+    } else if (e.key === "Enter" && drawMode === "polygon" && draftPoints.current.length >= 3) {
+      if (pendingVertex.current) {
+        clearTimeout(pendingVertex.current.timer);
+        pendingVertex.current = null;
+      }
+      const pts = draftPoints.current;
+      commitDraft([]);
+      setCursor(null);
+      onDrawComplete(closeRing(pts));
+    } else if (e.key === "Backspace" && draftPoints.current.length) {
+      e.preventDefault();
+      commitDraft(draftPoints.current.slice(0, -1));
     }
   };
 
@@ -275,17 +374,24 @@ export default function HexMap(props: HexMapProps) {
   }
 
   return (
-    <div className="relative h-full w-full" onKeyDown={onKeyDown}>
+    <div
+      className="relative h-full w-full"
+      tabIndex={0}
+      onKeyDown={onKeyDown}
+      data-testid="hex-map"
+    >
       <div
         ref={containerRef}
         className="h-full w-full"
         role="application"
+        data-testid="hex-map-canvas"
         aria-label={`Map of fire hotspot hexagons coloured by ${metricLabel} count. Use arrow keys to pan and plus or minus to zoom.`}
       />
       {drawMode !== "none" && (
         <div
           className="pointer-events-none absolute left-3 top-3 max-w-[18rem] animate-fade border border-ink/15 bg-white/95 px-3 py-2 text-sm text-ink"
           role="status"
+          data-testid="draw-status"
         >
           {drawMode === "rect"
             ? draft.length === 0

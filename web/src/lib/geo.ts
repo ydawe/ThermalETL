@@ -3,19 +3,39 @@ import { cellToLatLng, getHexagonEdgeLengthAvg, greatCircleDistance, gridDisk, l
 /** [lon, lat] pairs, GeoJSON order. */
 export type LonLat = [number, number];
 
+function ringCentroid(ring: LonLat[]): LonLat {
+  // Skip duplicate closing vertex if present
+  const n = ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]
+    ? ring.length - 1
+    : ring.length;
+  let sx = 0;
+  let sy = 0;
+  for (let i = 0; i < n; i++) {
+    sx += ring[i][0];
+    sy += ring[i][1];
+  }
+  return [sx / Math.max(1, n), sy / Math.max(1, n)];
+}
+
 /**
  * Cells covering a polygon. polygonToCells only returns cells whose centre is
  * inside the shape, so tiny shapes would select nothing — we always add the
  * cells under the vertices and the centroid as well.
  */
 export function cellsInPolygon(ring: LonLat[], res: number): Set<string> {
-  const latLng = ring.map(([lon, lat]) => [lat, lon]);
-  const out = new Set<string>(polygonToCells(latLng, res));
-  if (out.size === 0) {
-    const cLon = ring.reduce((a, p) => a + p[0], 0) / ring.length;
-    const cLat = ring.reduce((a, p) => a + p[1], 0) / ring.length;
-    out.add(latLngToCell(cLat, cLon, res));
+  if (ring.length < 3) return new Set();
+  const latLng = ring.map(([lon, lat]) => [lat, lon] as [number, number]);
+  const out = new Set<string>();
+  try {
+    for (const cell of polygonToCells(latLng, res)) out.add(cell);
+  } catch {
+    // Degenerate rings (zero area) — fall through to vertices/centroid.
   }
+  for (const [lon, lat] of ring) {
+    out.add(latLngToCell(lat, lon, res));
+  }
+  const [cLon, cLat] = ringCentroid(ring);
+  out.add(latLngToCell(cLat, cLon, res));
   return out;
 }
 
@@ -57,4 +77,13 @@ export function rectPolygon(a: LonLat, b: LonLat): LonLat[] {
     [x1, y2],
     [x1, y1],
   ];
+}
+
+/** Ensure a ring is closed (first point repeated at end). */
+export function closeRing(ring: LonLat[]): LonLat[] {
+  if (ring.length === 0) return ring;
+  const [fx, fy] = ring[0];
+  const [lx, ly] = ring[ring.length - 1];
+  if (fx === lx && fy === ly) return ring;
+  return [...ring, ring[0]];
 }

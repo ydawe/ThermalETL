@@ -56,5 +56,13 @@ jobs:
           fi
       - name: Typecheck
         run: npm run typecheck
+      - name: Unit tests
+        run: npm run test:unit
       - name: Build (static export)
         run: npm run build
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: E2E draw selection
+        run: npm run test:e2e
+        env:
+          CI: true
