@@ -1,8 +1,13 @@
+import SiteHeader from "@/components/SiteHeader";
+import ThermalApp from "@/components/ThermalApp";
+
 export default function HomePage() {
   return (
-    <main style={{ padding: "2rem", fontFamily: "system-ui" }}>
-      <h1>ThermalETL</h1>
-      <p>Skeleton — Phase 0. Full app lands in Phase 3.</p>
-    </main>
+    <>
+      <SiteHeader hero />
+      <main className="flex-1 border-t border-ink/10">
+        <ThermalApp />
+      </main>
+    </>
   );
 }

@@ -10,12 +10,12 @@
 
 | # | Requirement | Status |
 |---|-------------|--------|
-| 1 | Harmonize FIRMS MODIS + VIIRS into one consistent 2000–now series | [ ] |
-| 2 | Calendar of burning activity: seasons, most active years, current vs historical median | [ ] |
-| 3 | Area selection: draw on map OR type lat/lon | [ ] |
-| 4 | Date range selection | [ ] |
-| 5 | Accessible colour scales | [ ] |
-| 6 | CSV export | [ ] |
+| 1 | Harmonize FIRMS MODIS + VIIRS into one consistent 2000–now series | [x] |
+| 2 | Calendar of burning activity: seasons, most active years, current vs historical median | [x] |
+| 3 | Area selection: draw on map OR type lat/lon | [x] |
+| 4 | Date range selection | [x] |
+| 5 | Accessible colour scales | [x] |
+| 6 | CSV export | [x] |
 
 ---
 
@@ -86,18 +86,18 @@
 ## Phase 3 — Frontend (static Next.js)
 
 ### Tasks
-- [ ] Next.js App Router, `output: 'export'`, TS, Tailwind, MapLibre, deck.gl H3, h3-js, OpenFreeMap
-- [ ] Map + Fire calendar layout (stack on mobile)
-- [ ] Area: draw rect/polygon OR lat/lon + radius km → hex selection
-- [ ] Date range month pickers
-- [ ] Map layers: Harmonized / MODIS / VIIRS; accessible scales + legend
-- [ ] Calendar heatmap (year×month, anomaly colours, critical months, tooltips)
-- [ ] Plain-language summary cards
-- [ ] Hex click: k bar chart + support / k_level
-- [ ] CSV export (Blob)
-- [ ] `/how-it-works` with diagram + validation + limitations
-- [ ] Lazy tile loading; a11y (keyboard, aria, contrast)
-- [ ] Commit Phase 3
+- [x] Next.js App Router, `output: 'export'`, TS, Tailwind, MapLibre, deck.gl H3, h3-js, OpenFreeMap
+- [x] Map + Fire calendar layout (stack on mobile)
+- [x] Area: draw rect/polygon OR lat/lon + radius km → hex selection
+- [x] Date range month pickers
+- [x] Map layers: Harmonized / MODIS / VIIRS; accessible scales + legend
+- [x] Calendar heatmap (year×month, anomaly colours, critical months, tooltips)
+- [x] Plain-language summary cards
+- [x] Hex click: k bar chart + support / k_level
+- [x] CSV export (Blob)
+- [x] `/how-it-works` with diagram + validation + limitations
+- [x] Lazy data loading (gzip via DecompressionStream / pako); a11y (keyboard, aria, contrast)
+- [x] Commit Phase 3
 
 ### Acceptance
 - `npm run build` (static export) succeeds; all 6 challenge items covered in UI.
@@ -107,10 +107,10 @@
 ## Phase 4 — Deploy + polish
 
 ### Tasks
-- [ ] `vercel.json` cache headers for `/data/*`; root `web/`
-- [ ] Empty / loading / error states
-- [ ] `docs/SUBMISSION.md`, `docs/DEMO.md`
-- [ ] Tick challenge checklist; final commit
+- [x] `vercel.json` cache headers for `/data/*`; root `web/`
+- [x] Empty / loading / error states (landed in Phase 3)
+- [x] `docs/SUBMISSION.md`, `docs/DEMO.md`
+- [x] Tick challenge checklist; final commit
 - [ ] Instruct user: FIRMS secret + Vercel connect
 
 ### Acceptance
@@ -150,5 +150,5 @@
 | 0 | DONE | Skeleton + PLAN + README + Apache-2.0 |
 | 1 | DONE | pytest 31 green; sample hex-k beats regional ~15% |
 | 2 | DONE | ci + backfill + weekly update workflows |
-| 3 | PENDING |
+| 3 | DONE | Static Next.js export green (typecheck + lint + build); map, calendar, summaries, hex k panel, CSV, /how-it-works |
 | 4 | PENDING |

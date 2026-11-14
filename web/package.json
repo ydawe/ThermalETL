@@ -10,14 +10,29 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@deck.gl/core": "^9.4.1",
+    "@deck.gl/extensions": "^9.4.1",
+    "@deck.gl/geo-layers": "^9.4.1",
+    "@deck.gl/layers": "^9.4.1",
+    "@deck.gl/mapbox": "^9.4.1",
+    "@deck.gl/mesh-layers": "^9.4.1",
+    "h3-js": "^4.5.0",
+    "maplibre-gl": "^4.7.1",
     "next": "^14.2.18",
+    "pako": "^2.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.17.6",
+    "@types/pako": "^2.0.4",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.6.2",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.18",
+    "postcss": "^8.5.33",
+    "tailwindcss": "^3.4.19",
     "typescript": "^5.6.3"
   }
 }
