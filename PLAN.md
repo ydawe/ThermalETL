@@ -111,7 +111,7 @@
 - [x] Empty / loading / error states (landed in Phase 3)
 - [x] `docs/SUBMISSION.md`, `docs/DEMO.md`
 - [x] Tick challenge checklist; final commit
-- [ ] Instruct user: FIRMS secret + Vercel connect
+- [x] Instruct user: FIRMS secret + Vercel connect
 
 ### Acceptance
 - Submission texts ready; demo script ready; deploy steps clear.
@@ -151,4 +151,4 @@
 | 1 | DONE | pytest 31 green; sample hex-k beats regional ~15% |
 | 2 | DONE | ci + backfill + weekly update workflows |
 | 3 | DONE | Static Next.js export green (typecheck + lint + build); map, calendar, summaries, hex k panel, CSV, /how-it-works |
-| 4 | PENDING |
+| 4 | DONE | vercel.json, SUBMISSION.md, DEMO.md; poland synthetic data |
