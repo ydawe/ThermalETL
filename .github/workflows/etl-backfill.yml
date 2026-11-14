@@ -1,0 +1,180 @@
+name: ETL backfill
+
+# Full history fetch (MODIS 2000-, VIIRS 2012-) as a year x sensor matrix,
+# then aggregate everything and commit web/public/data/{region}/.
+# Raw parquet is kept as assets of the GitHub Release "raw-{region}" so later
+# runs (and etl-update.yml) can re-aggregate without refetching history.
+
+on:
+  workflow_dispatch:
+    inputs:
+      years:
+        description: "Years to fetch, e.g. 2012-2015 or 2020,2021 (empty = all)"
+        required: false
+        default: ""
+      sensors:
+        description: "Sensors to fetch (MODIS, VIIRS or MODIS,VIIRS)"
+        required: false
+        default: "MODIS,VIIRS"
+      refresh:
+        description: "Re-fetch years already present in the raw release"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: etl-data
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      region: ${{ steps.plan.outputs.region }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require FIRMS_MAP_KEY
+        env:
+          FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
+        run: |
+          if [ -z "$FIRMS_MAP_KEY" ]; then
+            echo "::error::FIRMS_MAP_KEY secret is not set (Settings > Secrets and variables > Actions)."
+            exit 1
+          fi
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: pip install pyyaml
+      - name: Build year x sensor matrix
+        id: plan
+        env:
+          YEARS: ${{ inputs.years }}
+          SENSORS: ${{ inputs.sensors }}
+        run: |
+          python - <<'EOF' >> "$GITHUB_OUTPUT"
+          import datetime, json, os, yaml
+          cfg = yaml.safe_load(open("config.yaml"))
+          fetch = cfg.get("fetch", {})
+          start = {
+              "MODIS": int(str(fetch.get("modis_start", "2000-11-01"))[:4]),
+              "VIIRS": int(str(fetch.get("viirs_start", "2012-01-01"))[:4]),
+          }
+          now = datetime.date.today().year
+          years = set()
+          for part in (os.environ.get("YEARS") or "").split(","):
+              part = part.strip()
+              if not part:
+                  continue
+              if "-" in part:
+                  a, b = part.split("-", 1)
+                  years.update(range(int(a), int(b) + 1))
+              else:
+                  years.add(int(part))
+          sensors = [s.strip().upper() for s in (os.environ.get("SENSORS") or "MODIS,VIIRS").split(",") if s.strip()]
+          include = [
+              {"sensor": s, "year": y}
+              for s in sensors
+              for y in range(start[s], now + 1)
+              if not years or y in years
+          ]
+          if not include:
+              raise SystemExit("empty matrix")
+          print("matrix=" + json.dumps({"include": include}))
+          print("region=" + cfg["region"]["name"])
+          EOF
+
+  fetch:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 3 # be gentle with the FIRMS transaction limit
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: etl/pyproject.toml
+      - run: pip install -e etl
+      - name: Skip if already in raw release
+        id: existing
+        if: ${{ !inputs.refresh }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REGION: ${{ needs.plan.outputs.region }}
+        run: |
+          name="$(echo '${{ matrix.sensor }}' | tr '[:upper:]' '[:lower:]')_${{ matrix.year }}.parquet"
+          if [ "${{ matrix.year }}" -lt "$(date -u +%Y)" ] && \
+             gh release view "raw-$REGION" --json assets -q '.assets[].name' 2>/dev/null | grep -qx "$name"; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "$name already in release raw-$REGION; skipping."
+          fi
+      - name: Fetch ${{ matrix.sensor }} ${{ matrix.year }}
+        if: steps.existing.outputs.skip != 'true'
+        env:
+          FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
+        run: |
+          thermaletl run --config config.yaml --stage fetch --no-nrt \
+            --years ${{ matrix.year }} --sensors ${{ matrix.sensor }} --raw-dir raw --refresh
+      - uses: actions/upload-artifact@v4
+        if: steps.existing.outputs.skip != 'true'
+        with:
+          name: raw-${{ matrix.sensor }}-${{ matrix.year }}
+          path: raw/*.parquet
+          retention-days: 7
+
+  aggregate:
+    needs: [plan, fetch]
+    if: ${{ !cancelled() && needs.plan.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REGION: ${{ needs.plan.outputs.region }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: etl/pyproject.toml
+      - run: pip install -e etl
+      - name: Download previously stored raw data
+        run: |
+          mkdir -p raw
+          gh release download "raw-$REGION" --dir raw --pattern '*.parquet' --clobber || echo "No raw release yet."
+      - name: Download freshly fetched raw data
+        uses: actions/download-artifact@v4
+        with:
+          pattern: raw-*
+          path: raw
+          merge-multiple: true
+      - name: Aggregate, harmonize, validate, export
+        run: thermaletl run --config config.yaml --stage process --raw-dir raw
+      - name: Store raw parquet in release raw-${{ env.REGION }}
+        run: |
+          gh release view "raw-$REGION" >/dev/null 2>&1 || \
+            gh release create "raw-$REGION" --title "Raw FIRMS detections ($REGION)" \
+              --notes "Normalized raw detections used by ThermalETL. Data: NASA FIRMS." --latest=false
+          gh release upload "raw-$REGION" raw/*.parquet --clobber
+      - name: Commit data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/public/data
+          if git diff --cached --quiet; then
+            echo "No data changes."
+          else
+            git commit -m "data: backfill $REGION (${{ inputs.years || 'all years' }}, ${{ inputs.sensors }})"
+            git pull --rebase
+            git push
+          fi
