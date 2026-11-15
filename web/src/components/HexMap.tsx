@@ -6,14 +6,19 @@ import { MapboxOverlay } from "@deck.gl/mapbox";
 import { H3HexagonLayer } from "@deck.gl/geo-layers";
 import { PathLayer, ScatterplotLayer, PolygonLayer } from "@deck.gl/layers";
 import type { PickingInfo } from "@deck.gl/core";
-import { cellToBoundary } from "h3-js";
+import { cellToBoundary, cellToParent, getResolution } from "h3-js";
 import { BASEMAP_STYLE } from "@/lib/config";
 import { countScale, viridis } from "@/lib/colors";
 import { fmt } from "@/lib/analysis";
 import { closeRing, rectPolygon, type LonLat } from "@/lib/geo";
+import { aggregateHexesToRes, targetResForZoom } from "@/lib/h3Zoom";
 import type { HexInfo } from "@/lib/types";
 
 export type DrawMode = "none" | "rect" | "polygon";
+
+function cellToParentSafe(h3: string, res: number): string {
+  return cellToParent(h3, res);
+}
 
 const CLOSE_PX = 14;
 /** Ignore a click that is the first half of a double-click finish. */
@@ -54,6 +59,7 @@ export default function HexMap(props: HexMapProps) {
   const [hover, setHover] = useState<{ x: number; y: number; d: HexDatum } | null>(null);
   const [draft, setDraft] = useState<LonLat[]>([]);
   const [cursor, setCursor] = useState<LonLat | null>(null);
+  const [zoom, setZoom] = useState(5);
   /** Synchronous draft for click handlers (React state alone races on rapid / test clicks). */
   const draftPoints = useRef<LonLat[]>([]);
 
@@ -99,6 +105,8 @@ export default function HexMap(props: HexMapProps) {
     map.addControl(new maplibregl.AttributionControl({ compact: false }), "bottom-right");
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     map.touchZoomRotate.disableRotation();
+    setZoom(map.getZoom());
+    map.on("zoom", () => setZoom(map.getZoom()));
     map.on("error", (e) => {
       const msg = String((e as { error?: Error }).error?.message ?? "");
       if (/style|tile|fetch|load/i.test(msg)) setBasemapWarning(true);
@@ -242,16 +250,20 @@ export default function HexMap(props: HexMapProps) {
     }
   }, [drawMode]);
 
-  const data: HexDatum[] = useMemo(
-    () =>
-      hexes.map((h) => ({
-        h3: h.h3,
-        total: totals.get(h.h3) ?? 0,
-        selected: selected ? selected.has(h.h3) : true,
-        active: h.h3 === activeHex,
-      })),
-    [hexes, totals, selected, activeHex],
-  );
+  const nativeRes = useMemo(() => (hexes[0] ? getResolution(hexes[0].h3) : 5), [hexes]);
+  const viewRes = targetResForZoom(zoom, nativeRes);
+
+  const data: HexDatum[] = useMemo(() => {
+    const finest = hexes.map((h) => ({
+      h3: h.h3,
+      total: totals.get(h.h3) ?? 0,
+      selected: selected ? selected.has(h.h3) : true,
+      active: h.h3 === activeHex,
+    }));
+    return aggregateHexesToRes(finest, viewRes);
+  }, [hexes, totals, selected, activeHex, viewRes]);
+
+  const viewMax = useMemo(() => Math.max(1, ...data.map((d) => d.total)), [data]);
 
   const onHover = useCallback((info: PickingInfo<HexDatum>) => {
     setHover(info.object ? { x: info.x, y: info.y, d: info.object } : null);
@@ -260,11 +272,11 @@ export default function HexMap(props: HexMapProps) {
   useEffect(() => {
     const overlay = overlayRef.current;
     if (!overlay) return;
-    const scale = countScale(maxTotal);
+    const scale = countScale(viewMax);
     const drawing = drawMode !== "none";
     const layers: unknown[] = [
       new H3HexagonLayer<HexDatum>({
-        id: "hexes",
+        id: `hexes-r${viewRes}`,
         data,
         getHexagon: (d) => d.h3,
         extruded: false,
@@ -281,10 +293,28 @@ export default function HexMap(props: HexMapProps) {
         getLineColor: (d) => (d.active ? [184, 68, 27, 255] : d.selected ? [19, 38, 47, 230] : [19, 38, 47, 60]),
         getLineWidth: (d) => (d.active ? 3.5 : d.selected ? 1.5 : 0.75),
         transitions: { getFillColor: 450, getLineWidth: 200 },
-        updateTriggers: { getFillColor: [maxTotal], getLineColor: [activeHex], getLineWidth: [activeHex] },
+        updateTriggers: {
+          getFillColor: [viewMax, viewRes],
+          getLineColor: [activeHex, viewRes],
+          getLineWidth: [activeHex, viewRes],
+          getHexagon: [viewRes],
+        },
         onHover,
         onClick: (info) => {
-          if (info.object && drawRef.current.drawMode === "none") drawRef.current.onHexClick(info.object.h3);
+          // Parent cells are display-only; detail panel needs a finest-res id under the click.
+          if (!info.object || drawRef.current.drawMode !== "none") return;
+          if (viewRes >= nativeRes) {
+            drawRef.current.onHexClick(info.object.h3);
+            return;
+          }
+          const child = hexes.find((h) => {
+            try {
+              return cellToParentSafe(h.h3, viewRes) === info.object!.h3;
+            } catch {
+              return false;
+            }
+          });
+          if (child) drawRef.current.onHexClick(child.h3);
         },
       }),
     ];
@@ -338,7 +368,7 @@ export default function HexMap(props: HexMapProps) {
       );
     }
     overlay.setProps({ layers: layers as never });
-  }, [data, maxTotal, selectionRing, draft, cursor, drawMode, activeHex, onHover]);
+  }, [data, viewMax, viewRes, nativeRes, hexes, selectionRing, draft, cursor, drawMode, activeHex, onHover]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (drawMode === "none") return;
@@ -408,6 +438,13 @@ export default function HexMap(props: HexMapProps) {
           Background map tiles could not load; hexagons are still shown.
         </div>
       )}
+      <div
+        className="pointer-events-none absolute bottom-8 right-3 border border-ink/10 bg-white/90 px-2.5 py-1.5 text-[11px] tabular-nums text-ink-soft"
+        aria-live="polite"
+      >
+        H3 res {viewRes}
+        {viewRes < nativeRes ? " (merged)" : " (finest published)"}
+      </div>
       {hover && drawMode === "none" && (
         <div
           className="pointer-events-none absolute z-10 animate-fade border border-ink/15 bg-white px-3 py-2 text-sm text-ink shadow-md"

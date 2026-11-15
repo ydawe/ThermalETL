@@ -24,9 +24,17 @@ describe("isLikelyLand", () => {
     expect(isLikelyLand(55, 18)).toBe(false);
   });
 
-  it("keeps inland points", () => {
+  it("keeps inland points including US Midwest (not Great Lakes water)", () => {
     expect(isLikelyLand(52.23, 21.01)).toBe(true);
     expect(isLikelyLand(-15, -48)).toBe(true); // Brazil inland-ish
+    expect(isLikelyLand(41.88, -87.63)).toBe(true); // Chicago
+    expect(isLikelyLand(40.71, -74.01)).toBe(true); // NYC
+    expect(isLikelyLand(39.1, -94.6)).toBe(true); // Kansas City
+    expect(isLikelyLand(34.05, -118.25)).toBe(true); // LA
+  });
+
+  it("still drops lake centres", () => {
+    expect(isLikelyLand(47.5, -87.5)).toBe(false); // Lake Superior
   });
 });
 

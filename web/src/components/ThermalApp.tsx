@@ -206,13 +206,18 @@ function Explorer({ ds }: { ds: Dataset }) {
       <section aria-labelledby="calendar-title" className="min-h-0 animate-rise overflow-y-auto px-4 py-5 sm:px-6">
         {ds.meta.synthetic && (
           <p className="mb-4 border-l-4 border-ember/50 bg-ash-100/80 px-3 py-2 text-xs text-ink-soft" role="status">
-            <strong>Demo data (not measured fires).</strong> Counts are synthetic for UI and method testing. Ocean and
-            coastal water hexes are filtered out. Real NASA FIRMS replaces this after a successful ETL run (GitHub
-            Actions needs a working billing account, or run{" "}
-            <code className="text-[11px]">python -m thermaletl run --config ../config.yaml</code> locally with{" "}
-            <code className="text-[11px]">FIRMS_MAP_KEY</code>
-            ). Try <a className="underline" href="/?region=poland">Poland</a> or{" "}
-            <a className="underline" href="/?region=world">world</a>.
+            <strong>Demo data (not measured fires).</strong> Counts are synthetic for UI and method testing.
+          </p>
+        )}
+        {ds.region === "world" && !ds.meta.synthetic && (
+          <p className="mb-4 border-l-4 border-tide/40 bg-ash-100/80 px-3 py-2 text-xs text-ink-soft" role="status">
+            <strong>Global layer is a curated multi-country FIRMS sample</strong> (mainly United States, Australia,
+            Poland — not every nation). Zoom in to split hexes to finer H3 cells; zoom out to merge them. For full
+            national coverage try{" "}
+            <a className="underline" href="/?region=poland">
+              Poland
+            </a>
+            .
           </p>
         )}
         <div className="flex items-baseline justify-between gap-3">
