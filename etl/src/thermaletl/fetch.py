@@ -25,6 +25,9 @@ COUNTRY_YEAR_URL = FIRMS_BASE + "/data/country/{folder}/{year}/{prefix}_{year}_{
 
 COUNTRY_NAMES = {"POL": "Poland"}
 RETRY_STATUS = {429, 500, 502, 503, 504}
+# FIRMS returns this as HTTP 400 (not 429); keys recover after ~10 minutes.
+TRANSACTION_LIMIT_MARKERS = ("transaction limit", "exceeding allowed")
+TRANSACTION_LIMIT_WAIT_SECONDS = 60.0
 
 
 def _prefer_ipv4() -> None:
@@ -92,6 +95,13 @@ def _redact(url: str, map_key: str | None) -> str:
     return url.replace(map_key, "***") if map_key else url
 
 
+def _is_transaction_limit(status: int, body: str) -> bool:
+    if status not in (400, 429):
+        return False
+    low = (body or "").lower()
+    return any(m in low for m in TRANSACTION_LIMIT_MARKERS)
+
+
 def request_with_retry(
     url: str,
     *,
@@ -102,7 +112,10 @@ def request_with_retry(
     map_key: str | None = None,
     sleep: Callable[[float], None] = time.sleep,
 ) -> str:
-    """GET with exponential backoff on 429/5xx and network errors. 4xx (e.g. 400) fail fast."""
+    """GET with exponential backoff on 429/5xx, FIRMS transaction limits, and network errors.
+
+    Other 4xx (e.g. invalid area) fail fast.
+    """
     http = session or requests
     safe_url = _redact(url, map_key)
     last_err: Exception | None = None
@@ -112,17 +125,29 @@ def request_with_retry(
         except (requests.ConnectionError, requests.Timeout) as e:
             last_err = e
             log.warning("network error on %s (attempt %d): %s", safe_url, attempt + 1, e)
+            wait = backoff_seconds * (2**attempt)
         else:
             if resp.status_code == 200:
                 return resp.text
-            if resp.status_code not in RETRY_STATUS:
+            if _is_transaction_limit(resp.status_code, resp.text):
+                last_err = FirmsRequestError(
+                    f"HTTP {resp.status_code} for {safe_url}: {resp.text[:200]}", resp.status_code
+                )
+                log.warning(
+                    "FIRMS transaction limit on %s (attempt %d); waiting before retry",
+                    safe_url, attempt + 1,
+                )
+                wait = max(TRANSACTION_LIMIT_WAIT_SECONDS, backoff_seconds * (2**attempt))
+            elif resp.status_code not in RETRY_STATUS:
                 raise FirmsRequestError(
                     f"HTTP {resp.status_code} for {safe_url}: {resp.text[:200]}", resp.status_code
                 )
-            last_err = FirmsRequestError(f"HTTP {resp.status_code} for {safe_url}", resp.status_code)
-            log.warning("retryable HTTP %d on %s (attempt %d)", resp.status_code, safe_url, attempt + 1)
+            else:
+                last_err = FirmsRequestError(f"HTTP {resp.status_code} for {safe_url}", resp.status_code)
+                log.warning("retryable HTTP %d on %s (attempt %d)", resp.status_code, safe_url, attempt + 1)
+                wait = backoff_seconds * (2**attempt)
         if attempt < retry_max:
-            sleep(backoff_seconds * (2**attempt))
+            sleep(wait)
     raise FirmsRequestError(f"giving up after {retry_max + 1} attempts: {last_err}")
 
 
@@ -270,7 +295,18 @@ def fetch_history(
                 if not allow_country_fallback:
                     raise
                 log.warning("area API failed for %s %d (%s); trying country CSV fallback", source, year, e)
-                df = fetch_country_year(sensor, year, cfg=cfg, bbox=bbox, session=session, sleep=sleep)
+                try:
+                    df = fetch_country_year(sensor, year, cfg=cfg, bbox=bbox, session=session, sleep=sleep)
+                except FirmsRequestError as e2:
+                    # Current-year country CSVs are not published yet; don't fail the matrix job.
+                    if e2.status == 404 and year >= today.year:
+                        log.warning(
+                            "no country CSV for %s %d yet (HTTP 404); continuing with empty frame",
+                            sensor, year,
+                        )
+                        df = empty_detections()
+                    else:
+                        raise
             log.info("%s %d: %d detections", source, year, df.height)
             frames.append(df)
     if not frames:

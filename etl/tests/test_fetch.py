@@ -92,6 +92,14 @@ def test_no_retry_on_400_and_key_redacted():
     assert len(s.urls) == 1
 
 
+def test_retry_on_transaction_limit_400():
+    sleeps: list[float] = []
+    s = FakeSession([FakeResp(400, "Exceeding allowed transaction limit."), FakeResp(200, CSV)])
+    text = request_with_retry("http://x", session=s, retry_max=5, backoff_seconds=1, sleep=sleeps.append)
+    assert text == CSV
+    assert sleeps == [60.0]
+
+
 def test_retry_gives_up():
     s = FakeSession([FakeResp(500)] * 3)
     with pytest.raises(FirmsRequestError):
