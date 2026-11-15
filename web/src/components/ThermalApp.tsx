@@ -8,7 +8,7 @@ import {
   areaCalendar, csvForSelection, downloadText, fmt, formatMonth, fullRange, hexDetail, hexTotals,
   METRIC_LABEL, selectedCells, summarize,
 } from "@/lib/analysis";
-import { COUNTRIES, inBBox, type CountryInfo } from "@/lib/countries";
+import { COUNTRIES, countryOutline, inCountry, type CountryInfo } from "@/lib/countries";
 import { cellsInPolygon, cellsInRadius, circlePolygon, closeRing, type LonLat } from "@/lib/geo";
 import type { Dataset, Meta, Metric, MonthRange, Selection } from "@/lib/types";
 import type { DrawMode } from "./HexMap";
@@ -17,17 +17,6 @@ import SummaryCards from "./SummaryCards";
 import HexPanel from "./HexPanel";
 import { CountLegend } from "./Legend";
 import { AreaControls, DateRangePicker, MetricToggle } from "./Controls";
-
-function bboxRing(bbox: [number, number, number, number]): LonLat[] {
-  const [w, s, e, n] = bbox;
-  return [
-    [w, s],
-    [e, s],
-    [e, n],
-    [w, n],
-    [w, s],
-  ];
-}
 
 const HexMap = dynamic(() => import("./HexMap"), {
   ssr: false,
@@ -129,6 +118,12 @@ function Explorer({ ds }: { ds: Dataset }) {
   const summary = useMemo(() => summarize(cal, range), [cal, range]);
   const detail = useMemo(() => (activeHex ? hexDetail(ds, activeHex, range) : null), [ds, activeHex, range]);
   const selectedSet = useMemo(() => (selection.kind === "all" ? null : new Set(cells)), [selection, cells]);
+  /** Country crop: only render in-country hexes so US fire cells don't dominate a Canada pick. */
+  const mapHexes = useMemo(() => {
+    if (selection.kind !== "country") return ds.hexes;
+    const keep = new Set(cells);
+    return ds.hexes.filter((h) => keep.has(h.h3));
+  }, [ds.hexes, selection, cells]);
 
   const center: [number, number] = [(ds.meta.bbox[1] + ds.meta.bbox[3]) / 2, (ds.meta.bbox[0] + ds.meta.bbox[2]) / 2];
 
@@ -167,7 +162,9 @@ function Explorer({ ds }: { ds: Dataset }) {
         return;
       }
       const cells = new Set(
-        ds.hexes.filter((h) => inBBox(h.lat, h.lon, country.bbox)).map((h) => h.h3),
+        ds.hexes
+          .filter((h) => inCountry(h.lat, h.lon, country.id, country.bbox))
+          .map((h) => h.h3),
       );
       setSelection({
         kind: "country",
@@ -226,7 +223,7 @@ function Explorer({ ds }: { ds: Dataset }) {
         </div>
         <div className="relative h-[58vh] min-h-[360px] lg:h-auto lg:flex-1">
           <HexMap
-            hexes={ds.hexes}
+            hexes={mapHexes}
             totals={totals}
             maxTotal={maxTotal}
             metricLabel={METRIC_LABEL[metric]}
@@ -235,7 +232,7 @@ function Explorer({ ds }: { ds: Dataset }) {
               selection.kind === "all"
                 ? null
                 : selection.kind === "country"
-                  ? bboxRing(selection.bbox)
+                  ? countryOutline(selection.countryId, selection.bbox)
                   : selection.polygon
             }
             activeHex={activeHex}
