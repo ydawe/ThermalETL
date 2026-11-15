@@ -95,12 +95,13 @@ export function DateRangePicker({
 }
 
 export function AreaControls({
-  drawMode, onDrawMode, onCircle, onReset, selectionLabel, selectedCount, totalCount, defaultCenter,
+  drawMode, onDrawMode, onCircle, onResetArea, onResetAll, selectionLabel, selectedCount, totalCount, defaultCenter,
 }: {
   drawMode: DrawMode;
   onDrawMode: (m: DrawMode) => void;
   onCircle: (lat: number, lon: number, radiusKm: number) => void;
-  onReset: () => void;
+  onResetArea: () => void;
+  onResetAll: () => void;
   selectionLabel: string;
   selectedCount: number;
   totalCount: number;
@@ -145,8 +146,17 @@ export function AreaControls({
         >
           Draw polygon
         </button>
-        <button type="button" data-testid="draw-reset" className={btnIdle} onClick={onReset}>
+        <button type="button" data-testid="draw-reset" className={btnIdle} onClick={onResetArea}>
           Whole region
+        </button>
+        <button
+          type="button"
+          data-testid="reset-all"
+          className={btnIdle}
+          onClick={onResetAll}
+          title="Clear selection, dates, sensor toggle and open panels"
+        >
+          Reset
         </button>
       </div>
       <form onSubmit={submit} className="mt-2 grid grid-cols-[1fr_1fr_0.8fr_auto] items-end gap-1.5" aria-label="Select by coordinates">
