@@ -13,6 +13,11 @@ describe("isPolandLand", () => {
   it("drops the Bay of Puck / Gulf of Gdańsk", () => {
     expect(isPolandLand(54.55, 18.7)).toBe(false);
   });
+
+  it("drops nearshore Baltic just north of Gdańsk", () => {
+    expect(isPolandLand(54.5, 18.9)).toBe(false);
+    expect(isPolandLand(54.4, 18.6)).toBe(false);
+  });
 });
 
 describe("filterLandHexes", () => {
