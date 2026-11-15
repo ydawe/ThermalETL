@@ -8,6 +8,7 @@ import {
   areaCalendar, csvForSelection, downloadText, fmt, formatMonth, fullRange, hexDetail, hexTotals,
   METRIC_LABEL, selectedCells, summarize,
 } from "@/lib/analysis";
+import { COUNTRIES, inBBox, type CountryInfo } from "@/lib/countries";
 import { cellsInPolygon, cellsInRadius, circlePolygon, closeRing, type LonLat } from "@/lib/geo";
 import type { Dataset, Meta, Metric, MonthRange, Selection } from "@/lib/types";
 import type { DrawMode } from "./HexMap";
@@ -16,6 +17,17 @@ import SummaryCards from "./SummaryCards";
 import HexPanel from "./HexPanel";
 import { CountLegend } from "./Legend";
 import { AreaControls, DateRangePicker, MetricToggle } from "./Controls";
+
+function bboxRing(bbox: [number, number, number, number]): LonLat[] {
+  const [w, s, e, n] = bbox;
+  return [
+    [w, s],
+    [e, s],
+    [e, n],
+    [w, n],
+    [w, s],
+  ];
+}
 
 const HexMap = dynamic(() => import("./HexMap"), {
   ssr: false,
@@ -104,6 +116,8 @@ function Explorer({ ds }: { ds: Dataset }) {
   const [range, setRange] = useState<MonthRange>(bounds);
   const [metric, setMetric] = useState<Metric>("harm");
   const [selection, setSelection] = useState<Selection>({ kind: "all" });
+  const [countryId, setCountryId] = useState("world");
+  const [focusBbox, setFocusBbox] = useState<[number, number, number, number] | null>(null);
   const [drawMode, setDrawMode] = useState<DrawMode>("none");
   const [activeHex, setActiveHex] = useState<string | null>(null);
   const res = ds.meta.h3_resolution;
@@ -142,13 +156,39 @@ function Explorer({ ds }: { ds: Dataset }) {
     });
   };
 
+  const selectCountry = useCallback(
+    (country: CountryInfo) => {
+      setDrawMode("none");
+      setCountryId(country.id);
+      setActiveHex(null);
+      setFocusBbox(country.bbox);
+      if (country.id === "world") {
+        setSelection({ kind: "all" });
+        return;
+      }
+      const cells = new Set(
+        ds.hexes.filter((h) => inBBox(h.lat, h.lon, country.bbox)).map((h) => h.h3),
+      );
+      setSelection({
+        kind: "country",
+        label: country.label,
+        countryId: country.id,
+        bbox: country.bbox,
+        cells,
+      });
+    },
+    [ds.hexes],
+  );
+
   const resetAll = useCallback(() => {
     setSelection({ kind: "all" });
+    setCountryId("world");
+    setFocusBbox(ds.meta.bbox);
     setDrawMode("none");
     setRange(bounds);
     setMetric("harm");
     setActiveHex(null);
-  }, [bounds]);
+  }, [bounds, ds.meta.bbox]);
 
   const exportCsv = () => {
     const csv = csvForSelection(ds, cells, range, cal);
@@ -171,9 +211,11 @@ function Explorer({ ds }: { ds: Dataset }) {
             onCircle={onCircle}
             onResetArea={() => {
               setDrawMode("none");
-              setSelection({ kind: "all" });
+              selectCountry(COUNTRIES[0]);
             }}
             onResetAll={resetAll}
+            onCountry={selectCountry}
+            countryId={countryId}
             selectionLabel={selection.kind === "all" ? "whole region" : selection.label}
             selectedCount={cells.length}
             totalCount={ds.hexes.length}
@@ -189,9 +231,16 @@ function Explorer({ ds }: { ds: Dataset }) {
             maxTotal={maxTotal}
             metricLabel={METRIC_LABEL[metric]}
             selected={selectedSet}
-            selectionRing={selection.kind === "all" ? null : selection.polygon}
+            selectionRing={
+              selection.kind === "all"
+                ? null
+                : selection.kind === "country"
+                  ? bboxRing(selection.bbox)
+                  : selection.polygon
+            }
             activeHex={activeHex}
             bbox={ds.meta.bbox}
+            focusBbox={focusBbox}
             drawMode={drawMode}
             onHexClick={setActiveHex}
             onDrawComplete={onDrawComplete}
@@ -211,13 +260,9 @@ function Explorer({ ds }: { ds: Dataset }) {
         )}
         {ds.region === "world" && !ds.meta.synthetic && (
           <p className="mb-4 border-l-4 border-tide/40 bg-ash-100/80 px-3 py-2 text-xs text-ink-soft" role="status">
-            <strong>Global layer is a curated multi-country FIRMS sample</strong> (mainly United States, Australia,
-            Poland — not every nation). Zoom in to split hexes to finer H3 cells; zoom out to merge them. For full
-            national coverage try{" "}
-            <a className="underline" href="/?region=poland">
-              Poland
-            </a>
-            .
+            <strong>Global FIRMS layer</strong> (multi-country archives). Use <em>Country</em> to crop a nation; zoom
+            in to split hexes down to H3 res {ds.meta.h3_resolution}. Coverage grows as more country years are
+            backfilled — empty nations simply have no published hexes yet.
           </p>
         )}
         <div className="flex items-baseline justify-between gap-3">

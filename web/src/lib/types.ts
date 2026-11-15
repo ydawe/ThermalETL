@@ -95,4 +95,11 @@ export interface MonthRange {
 export type Selection =
   | { kind: "all" }
   | { kind: "shape"; label: string; polygon: [number, number][]; cells: Set<string> }
-  | { kind: "circle"; label: string; lat: number; lon: number; radiusKm: number; polygon: [number, number][]; cells: Set<string> };
+  | { kind: "circle"; label: string; lat: number; lon: number; radiusKm: number; polygon: [number, number][]; cells: Set<string> }
+  | {
+      kind: "country";
+      label: string;
+      countryId: string;
+      bbox: [number, number, number, number];
+      cells: Set<string>;
+    };

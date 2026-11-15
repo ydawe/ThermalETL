@@ -40,6 +40,8 @@ export interface HexMapProps {
   selectionRing: LonLat[] | null;
   activeHex: string | null;
   bbox: [number, number, number, number];
+  /** When set, map flies to this bbox (e.g. country picker). */
+  focusBbox?: [number, number, number, number] | null;
   drawMode: DrawMode;
   onHexClick: (h3: string) => void;
   onDrawComplete: (ring: LonLat[]) => void;
@@ -48,7 +50,7 @@ export interface HexMapProps {
 
 export default function HexMap(props: HexMapProps) {
   const {
-    hexes, totals, maxTotal, metricLabel, selected, selectionRing, activeHex, bbox,
+    hexes, totals, maxTotal, metricLabel, selected, selectionRing, activeHex, bbox, focusBbox,
     drawMode, onHexClick, onDrawComplete, onDrawCancel,
   } = props;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -249,6 +251,19 @@ export default function HexMap(props: HexMapProps) {
       containerRef.current?.parentElement?.focus({ preventScroll: true });
     }
   }, [drawMode]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !focusBbox) return;
+    const [west, south, east, north] = focusBbox;
+    map.fitBounds(
+      [
+        [west, south],
+        [east, north],
+      ],
+      { padding: 48, maxZoom: 9, duration: 700 },
+    );
+  }, [focusBbox]);
 
   const nativeRes = useMemo(() => (hexes[0] ? getResolution(hexes[0].h3) : 5), [hexes]);
   const viewRes = targetResForZoom(zoom, nativeRes);

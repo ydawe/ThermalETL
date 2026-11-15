@@ -1,10 +1,13 @@
 import { cellToParent, getResolution } from "h3-js";
 
-/** Pick a coarser H3 resolution when the map is zoomed out so hexes merge, then split again on zoom-in. */
+/**
+ * Pick H3 resolution for the current map zoom.
+ * Zoomed out → merge to parents; by ~city scale we show the finest published cells.
+ */
 export function targetResForZoom(zoom: number, nativeRes: number): number {
-  if (zoom < 3) return Math.max(0, nativeRes - 3);
-  if (zoom < 5) return Math.max(0, nativeRes - 2);
-  if (zoom < 7) return Math.max(0, nativeRes - 1);
+  if (zoom < 2.5) return Math.max(0, nativeRes - 3);
+  if (zoom < 4) return Math.max(0, nativeRes - 2);
+  if (zoom < 5.5) return Math.max(0, nativeRes - 1);
   return nativeRes;
 }
 

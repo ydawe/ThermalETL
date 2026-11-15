@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import { keyMonth, keyYear, monthKey } from "@/lib/data";
 import { METRIC_LABEL, MONTHS_SHORT } from "@/lib/analysis";
+import { COUNTRIES, type CountryInfo } from "@/lib/countries";
 import type { Metric, MonthRange } from "@/lib/types";
 import type { DrawMode } from "./HexMap";
 
@@ -95,13 +96,15 @@ export function DateRangePicker({
 }
 
 export function AreaControls({
-  drawMode, onDrawMode, onCircle, onResetArea, onResetAll, selectionLabel, selectedCount, totalCount, defaultCenter,
+  drawMode, onDrawMode, onCircle, onResetArea, onResetAll, onCountry, countryId, selectionLabel, selectedCount, totalCount, defaultCenter,
 }: {
   drawMode: DrawMode;
   onDrawMode: (m: DrawMode) => void;
   onCircle: (lat: number, lon: number, radiusKm: number) => void;
   onResetArea: () => void;
   onResetAll: () => void;
+  onCountry: (country: CountryInfo) => void;
+  countryId: string;
   selectionLabel: string;
   selectedCount: number;
   totalCount: number;
@@ -111,6 +114,7 @@ export function AreaControls({
   const [lon, setLon] = useState(defaultCenter[1].toFixed(3));
   const [radius, setRadius] = useState("15");
   const [error, setError] = useState<string | null>(null);
+  const countrySelectId = useId();
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,6 +131,25 @@ export function AreaControls({
   return (
     <fieldset>
       <legend className="mb-1 text-xs font-semibold uppercase tracking-wider text-ink-mute">Area</legend>
+      <label htmlFor={countrySelectId} className="mb-1 block text-xs text-ink-soft">
+        Country
+      </label>
+      <select
+        id={countrySelectId}
+        data-testid="country-select"
+        className={`${field} mb-2 max-w-full`}
+        value={countryId}
+        onChange={(e) => {
+          const c = COUNTRIES.find((x) => x.id === e.target.value);
+          if (c) onCountry(c);
+        }}
+      >
+        {COUNTRIES.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.label}
+          </option>
+        ))}
+      </select>
       <div className="flex flex-wrap gap-1.5">
         <button
           type="button"

@@ -6,8 +6,8 @@
     21.3,
     52.4
   ],
-  "h3_resolution": 5,
-  "generated_at": "2026-11-15T13:46:00+00:00",
+  "h3_resolution": 6,
+  "generated_at": "2026-11-15T14:56:19+00:00",
   "etl_version": "0.1.0",
   "data_source": "synthetic",
   "synthetic": true,
@@ -45,21 +45,21 @@
   "harmonization": "harm_n = viirs_n if year >= 2012 else modis_n * k(h3, month)",
   "k_fallback": [
     "hex",
+    "res5",
     "res4",
-    "res3",
     "region"
   ],
   "counts": {
     "detections_modis": 1441,
     "detections_viirs": 6767,
-    "hexes": 11,
-    "monthly_rows": 546
+    "hexes": 43,
+    "monthly_rows": 1660
   },
   "k_level_counts": {
-    "hex": 54,
-    "region": 11,
-    "res3": 12,
-    "res4": 55
+    "hex": 99,
+    "region": 70,
+    "res4": 150,
+    "res5": 197
   },
   "regional_k": {
     "overall": 4.696,
@@ -80,26 +80,26 @@
   },
   "validation": {
     "holdout_year": 2023,
-    "n_cells_months": 63,
-    "actual_viirs_total": 1407.0,
+    "n_cells_months": 137,
+    "actual_viirs_total": 1112.0,
     "hex_k": {
-      "mae": 5.4954,
-      "rel_error": 0.2461,
-      "bias": 1.9511,
-      "pred_total": 1529.92
+      "mae": 4.8437,
+      "rel_error": 0.5967,
+      "bias": 2.6196,
+      "pred_total": 1470.88
     },
     "regional_k": {
-      "mae": 6.4723,
-      "rel_error": 0.2898,
-      "bias": 1.9585,
-      "pred_total": 1530.38
+      "mae": 4.6722,
+      "rel_error": 0.5756,
+      "bias": 2.5839,
+      "pred_total": 1466.0
     },
-    "mae_improvement_vs_regional": 0.1509,
+    "mae_improvement_vs_regional": -0.0367,
     "k_level_counts": {
-      "hex": 46,
-      "res4": 13,
-      "region": 1,
-      "res3": 3
+      "res5": 55,
+      "hex": 63,
+      "res4": 17,
+      "region": 2
     },
     "train_regional_k_overall": 4.7314
   },

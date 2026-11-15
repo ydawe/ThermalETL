@@ -5,8 +5,8 @@ region:
   country_code: WORLD
 
 h3:
-  resolution: 4
-  parent_fallback_levels: [3, 2]
+  resolution: 5
+  parent_fallback_levels: [4, 3]
 
 harmonization:
   min_support: 5

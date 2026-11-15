@@ -7,8 +7,9 @@ region:
   country_code: POL
 
 h3:
-  resolution: 5
-  parent_fallback_levels: [4, 3]
+  # Finer grid so zoom-in reaches ~90 km² cells (was ~250 km² at res 5).
+  resolution: 6
+  parent_fallback_levels: [5, 4]
 
 harmonization:
   min_support: 5

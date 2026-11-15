@@ -3,11 +3,11 @@ import { latLngToCell } from "h3-js";
 import { aggregateHexesToRes, targetResForZoom } from "./h3Zoom";
 
 describe("targetResForZoom", () => {
-  it("coarsens when zoomed out", () => {
+  it("coarsens when zoomed out and reaches native by city scale", () => {
     expect(targetResForZoom(2, 5)).toBe(2);
-    expect(targetResForZoom(4, 5)).toBe(3);
-    expect(targetResForZoom(6, 5)).toBe(4);
-    expect(targetResForZoom(8, 5)).toBe(5);
+    expect(targetResForZoom(3.5, 5)).toBe(3);
+    expect(targetResForZoom(5, 5)).toBe(4);
+    expect(targetResForZoom(6, 5)).toBe(5);
   });
 });
 
