@@ -18,7 +18,7 @@ const body = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
-  title: "ThermalETL — Harmonized fire hotspots",
+  title: "ThermalETL: Harmonized fire hotspots",
   description:
     "One consistent MODIS + VIIRS fire history. Seasons, active years, and how now compares to usual.",
 };

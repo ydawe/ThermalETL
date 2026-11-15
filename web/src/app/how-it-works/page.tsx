@@ -3,7 +3,7 @@ import SiteHeader from "@/components/SiteHeader";
 import ValidationNumbers from "@/components/ValidationNumbers";
 
 export const metadata: Metadata = {
-  title: "How it works — ThermalETL",
+  title: "How it works: ThermalETL",
   description: "How ThermalETL joins MODIS and VIIRS fire hotspots into one consistent history.",
 };
 
@@ -69,7 +69,7 @@ export default function HowItWorksPage() {
               <a className="text-tide underline underline-offset-2" href="https://firms.modaps.eosdis.nasa.gov/" target="_blank" rel="noopener noreferrer">
                 NASA FIRMS
               </a>{" "}
-              — MODIS Collection 6.1 (Terra &amp; Aqua) standard product, confidence ≥ 30.
+              : MODIS Collection 6.1 (Terra &amp; Aqua) standard product, confidence ≥ 30.
             </li>
             <li>VIIRS S-NPP 375 m standard product, nominal and high confidence only.</li>
             <li>Near-real-time FIRMS feeds for the most recent days, de-duplicated against the standard archive.</li>

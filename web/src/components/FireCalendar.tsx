@@ -159,7 +159,7 @@ export default function FireCalendar({ cal, metricLabel }: { cal: AreaCalendar; 
                 <dd className="text-right">{fmt(tipCell.median, 1)}</dd>
                 <dt className="text-ink-mute">vs median</dt>
                 <dd className="text-right font-semibold">
-                  {tipCell.ratio !== null ? `${fmt(tipCell.ratio, 2)}×` : tipCell.value > 0 ? "new" : "—"}
+                  {tipCell.ratio !== null ? `${fmt(tipCell.ratio, 2)}×` : tipCell.value > 0 ? "new" : "-"}
                 </dd>
               </dl>
             )}

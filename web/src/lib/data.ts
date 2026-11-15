@@ -1,4 +1,5 @@
 import { dataUrl } from "./config";
+import { filterLandHexes } from "./landmask";
 import type { CoefFile, Dataset, HexesFile, Meta, MonthlyRow } from "./types";
 
 export class DataError extends Error {
@@ -103,10 +104,17 @@ export async function loadDataset(region: string, meta: Meta, signal?: AbortSign
   if (meta.files?.tiled) {
     throw new DataError("This region uses tiled data, which this build does not read yet.");
   }
-  const [hexes, coef, monthly] = await Promise.all([
+  const [hexesFile, coef, monthly] = await Promise.all([
     fetchJson<HexesFile>(dataUrl(region, "hexes.json"), signal),
     fetchJson<CoefFile>(dataUrl(region, "coef.json"), signal),
     fetchGzJson<MonthlyFile>(dataUrl(region, "monthly.json.gz"), signal),
   ]);
-  return { region, meta, hexes: hexes.hexes, coef, monthly: indexMonthly(monthly) };
+  // Drop Baltic / lagoon hexes so the fire grid does not sit on open water.
+  const hexes = filterLandHexes(region, hexesFile.hexes);
+  const land = new Set(hexes.map((h) => h.h3));
+  const monthlyMap = indexMonthly(monthly);
+  for (const key of [...monthlyMap.keys()]) {
+    if (!land.has(key)) monthlyMap.delete(key);
+  }
+  return { region, meta, hexes, coef, monthly: monthlyMap };
 }

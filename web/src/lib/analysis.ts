@@ -22,7 +22,7 @@ export const METRIC_LABEL: Record<Metric, string> = {
 export const formatMonth = (key: number) => `${MONTHS_SHORT[keyMonth(key) - 1]} ${keyYear(key)}`;
 
 export function fmt(n: number, digits = 0): string {
-  if (!Number.isFinite(n)) return "–";
+  if (!Number.isFinite(n)) return "-";
   const d = Math.abs(n) < 10 && digits === 0 && n % 1 !== 0 ? 1 : digits;
   return n.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: 0 });
 }
@@ -157,7 +157,7 @@ function monthSpan(months: number[]): string {
   if (!s.length) return "";
   const contiguous = s.length > 1 && s.every((m, i) => i === 0 || m === s[i - 1] + 1);
   return contiguous
-    ? `${MONTHS_SHORT[s[0] - 1]}–${MONTHS_SHORT[s[s.length - 1] - 1]}`
+    ? `${MONTHS_SHORT[s[0] - 1]}-${MONTHS_SHORT[s[s.length - 1] - 1]}`
     : s.map((m) => MONTHS_SHORT[m - 1]).join(", ");
 }
 
@@ -214,7 +214,7 @@ export function summarize(cal: AreaCalendar, range: MonthRange): Summary {
     let sentence: string;
     let direction: NonNullable<Summary["latest"]>["direction"];
     if (med <= 0 && value <= 0) {
-      sentence = `No hotspots — and a typical ${monthName} here has none either.`;
+      sentence = `No hotspots, and a typical ${monthName} here has none either.`;
       direction = "quiet";
     } else if (med <= 0) {
       sentence = `${fmt(value)} hotspots, while a typical ${monthName} here has none.`;
@@ -286,8 +286,8 @@ export const K_LEVEL_TEXT: Record<KLevel, { short: string; long: string }> = {
   hex: { short: "This hex", long: "Measured right here: enough overlapping MODIS and VIIRS detections in this hexagon." },
   res4: { short: "Nearby area", long: "Borrowed from the surrounding area (about 7 hexagons) because this one had too few overlapping detections." },
   res3: { short: "Wider area", long: "Borrowed from a wider area (about 50 hexagons) because the nearby area was still too sparse." },
-  region: { short: "Whole region", long: "Regional average for this month — too few overlapping detections anywhere nearby." },
-  region_all: { short: "Whole region (all months)", long: "Region-wide average over all months — this calendar month had too little data." },
+  region: { short: "Whole region", long: "Regional average for this month: too few overlapping detections anywhere nearby." },
+  region_all: { short: "Whole region (all months)", long: "Region-wide average over all months: this calendar month had too little data." },
   default: { short: "Default", long: "No overlap data at all; the ratio defaults to 1." },
 };
 

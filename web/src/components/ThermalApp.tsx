@@ -204,7 +204,7 @@ function Explorer({ ds }: { ds: Dataset }) {
         <div className="flex items-baseline justify-between gap-3">
           <h2 id="calendar-title" className="font-display text-2xl font-semibold text-ink">Fire calendar</h2>
           <span className="text-xs text-ink-mute tabular-nums">
-            {formatMonth(range.from)} – {formatMonth(range.to)}
+            {formatMonth(range.from)} to {formatMonth(range.to)}
           </span>
         </div>
         <p className="mt-1 text-sm text-ink-soft">
@@ -263,7 +263,7 @@ function Explorer({ ds }: { ds: Dataset }) {
             <option value="">Click a hexagon on the map, or choose one here…</option>
             {hexOptions.map((h) => (
               <option key={h.h3} value={h.h3}>
-                {h.lat.toFixed(3)}, {h.lon.toFixed(3)} — {fmt(totals.get(h.h3) ?? 0)} hotspots
+                {h.lat.toFixed(3)}, {h.lon.toFixed(3)}: {fmt(totals.get(h.h3) ?? 0)} hotspots
               </option>
             ))}
           </select>

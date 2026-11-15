@@ -59,8 +59,8 @@ export default function ValidationNumbers() {
               </tr>
               <tr>
                 <th scope="row" className="py-2 pr-4 font-normal text-ink-mute">Actual VIIRS</th>
-                <td className="py-2 pr-4 text-ink-mute">—</td>
-                <td className="py-2 pr-4 text-ink-mute">—</td>
+                <td className="py-2 pr-4 text-ink-mute">-</td>
+                <td className="py-2 pr-4 text-ink-mute">-</td>
                 <td className="py-2 text-ink-mute">{fmt(v.actual_viirs_total)}</td>
               </tr>
             </tbody>
@@ -75,7 +75,7 @@ export default function ValidationNumbers() {
         <p className="text-ink-soft">Validation has not been run for this region yet.</p>
       )}
       <p className="text-xs text-ink-mute">
-        Region <code>{meta.region}</code> · H3 resolution {meta.h3_resolution} · overlap years {meta.overlap_years[0]}–
+        Region <code>{meta.region}</code> · H3 resolution {meta.h3_resolution} · overlap years {meta.overlap_years[0]}-
         {meta.overlap_years[1]} · minimum support {meta.min_support} MODIS detections · generated{" "}
         {new Date(meta.generated_at).toLocaleDateString("en-GB")}
       </p>
