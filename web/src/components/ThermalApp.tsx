@@ -207,7 +207,9 @@ function Explorer({ ds }: { ds: Dataset }) {
         {ds.meta.synthetic && (
           <p className="mb-4 border-l-4 border-ember/50 bg-ash-100/80 px-3 py-2 text-xs text-ink-soft" role="status">
             <strong>Demo data (not measured fires).</strong> Counts are synthetic for UI and method testing. Ocean and
-            coastal water hexes are filtered out. Load real NASA FIRMS with the ETL backfill (
+            coastal water hexes are filtered out. Real NASA FIRMS replaces this after a successful ETL run (GitHub
+            Actions needs a working billing account, or run{" "}
+            <code className="text-[11px]">python -m thermaletl run --config ../config.yaml</code> locally with{" "}
             <code className="text-[11px]">FIRMS_MAP_KEY</code>
             ). Try <a className="underline" href="/?region=poland">Poland</a> or{" "}
             <a className="underline" href="/?region=world">world</a>.
