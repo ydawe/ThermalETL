@@ -49,8 +49,9 @@ export default function HowItWorksPage() {
               wider area, then the whole region. The map&apos;s hexagon panel shows which level was used.
             </Step>
             <Step n={4} title="Build one harmonized series">
-              Where VIIRS is available, we use it as-is. Before VIIRS existed, we multiply MODIS by k. The fire
-              calendar then compares every month with the median of the same month across all years.
+              From 2012 onward we use VIIRS counts as-is (including quiet months with zero). Before 2012 we multiply
+              MODIS by k. The fire calendar then compares every month with the median of the same month across all
+              years.
             </Step>
           </ol>
         </section>
@@ -105,6 +106,12 @@ export default function HowItWorksPage() {
             <li>
               <strong className="text-ink">Not every hotspot is a wildfire.</strong> Field burning, industrial heat
               sources and gas flares can be detected too.
+            </li>
+            <li>
+              <strong className="text-ink">Early-2000s totals can look huge after scaling.</strong> In Poland,
+              harmonized years 2002–2005 often show ~26–40 thousand hotspots versus ~5–9 thousand in later years.
+              Some of that is real (more open-field burning, especially in the east), but a regional conversion
+              factor around 9× amplifies the jump whenever we scale MODIS-only months by k.
             </li>
           </ul>
         </section>

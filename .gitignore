@@ -25,6 +25,8 @@ htmlcov/
 etl/data/raw/
 etl/data/cache/
 etl/checkpoints/
+raw/
+raw/**
 *.duckdb
 
 # Node / Next.js

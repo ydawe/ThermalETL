@@ -1,0 +1,39 @@
+# Global FIRMS layer (country CSV archives → H3). Coarser than Poland to fit static hosting.
+region:
+  name: world
+  bbox: [-180, -56, 180, 72]
+  country_code: WORLD
+
+h3:
+  resolution: 4
+  parent_fallback_levels: [3, 2]
+
+harmonization:
+  min_support: 5
+  overlap_start_year: 2012
+  modis_source: MODIS_SP
+  viirs_source: VIIRS_SNPP_SP
+  modis_nrt: MODIS_NRT
+  viirs_nrt: VIIRS_SNPP_NRT
+
+filters:
+  modis_confidence_min: 30
+  viirs_confidence: ["n", "h"]
+
+fetch:
+  max_days_per_request: 5
+  retry_max: 5
+  retry_backoff_seconds: 5
+  sleep_between_requests_seconds: 0.5
+  nrt_days: 10
+  modis_start: "2000-11-01"
+  viirs_start: "2012-01-01"
+
+output:
+  max_file_mb: 20
+  tile_parent_res: 2
+
+sample:
+  name: sample
+  bbox: [20.8, 52.1, 21.3, 52.4]
+  years: [2018, 2019, 2020, 2021, 2022, 2023]

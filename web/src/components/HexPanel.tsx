@@ -16,11 +16,9 @@ const LEVEL_STYLE: Record<KLevel, { fill: string; text: string }> = {
 export default function HexPanel({
   detail,
   onClose,
-  onReset,
 }: {
   detail: HexDetail;
   onClose: () => void;
-  onReset?: () => void;
 }) {
   const [month, setMonth] = useState(() => detail.medians.indexOf(Math.max(...detail.medians)));
   const maxK = Math.max(...detail.k, 1);
@@ -73,31 +71,16 @@ export default function HexPanel({
             </h3>
             <p className="font-mono text-[11px] text-ink-mute">{detail.h3}</p>
           </div>
-          <div className="flex gap-1.5">
-            {onReset && (
-              <button
-                type="button"
-                data-testid="hex-detail-reset"
-                onClick={() => {
-                  onReset();
-                  onClose();
-                }}
-                className="border border-ink/20 px-2.5 py-1 text-sm text-ink-soft transition-colors hover:bg-ash-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-tide"
-              >
-                Reset
-              </button>
-            )}
-            <button
-              ref={closeRef}
-              type="button"
-              data-testid="hex-detail-close"
-              onClick={onClose}
-              className="border border-ink/20 px-2.5 py-1 text-sm text-ink-soft transition-colors hover:bg-ash-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-tide"
-              aria-label="Close hexagon details"
-            >
-              Close
-            </button>
-          </div>
+          <button
+            ref={closeRef}
+            type="button"
+            data-testid="hex-detail-close"
+            onClick={onClose}
+            className="border border-ink/20 px-2.5 py-1 text-sm text-ink-soft transition-colors hover:bg-ash-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-tide"
+            aria-label="Close hexagon details"
+          >
+            Close
+          </button>
         </div>
 
         <dl className="mt-4 grid grid-cols-3 gap-2 text-center tabular-nums">
@@ -118,8 +101,8 @@ export default function HexPanel({
           Conversion ratio <span className="font-normal text-ink-mute">(k = VIIRS ÷ MODIS) by month</span>
         </h4>
         <p className="text-xs text-ink-mute">
-          VIIRS sees more small fires than MODIS. For years with only MODIS, we multiply by k to estimate what VIIRS
-          would have seen.
+          VIIRS sees more small fires than MODIS. Before 2012 we multiply MODIS by k; from 2012 onward we use VIIRS
+          counts directly (including quiet months).
         </p>
         <div
           role="radiogroup"

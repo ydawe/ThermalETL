@@ -86,18 +86,22 @@ def test_regional_k(warsaw, gdansk):
     assert reg["overall"] == pytest.approx(125 / 40)
 
 
-def test_harmonization_prefers_viirs(warsaw):
+def test_harmonization_viirs_era_uses_viirs_even_when_zero(warsaw):
     monthly = monthly_df(
         [
             (warsaw, 2005, 3, 10, 0),  # pre-VIIRS -> MODIS * k
-            (warsaw, 2015, 3, 10, 25),  # VIIRS observed -> VIIRS
-            (warsaw, 2016, 3, 10, 35),
+            (warsaw, 2014, 3, 10, 30),  # overlap for k (=3)
+            (warsaw, 2015, 3, 10, 0),  # VIIRS era, zero -> 0 (not MODIS×k)
+            (warsaw, 2016, 3, 10, 25),
         ]
     )
     coef, _ = compute_coefficients(monthly, min_support=5, overlap_start_year=2012)
-    harm = harmonize(monthly, coef).sort("year")
-    vals = harm["harm_n"].to_list()
-    assert vals[0] == pytest.approx(10 * 3.0)
-    assert vals[1] == 25
-    assert vals[2] == 35
-    assert harm["harm_src"].to_list() == ["modis_k", "viirs", "viirs"]
+    k = coef.filter((coef["h3"] == warsaw) & (coef["month"] == 3))["k"][0]
+    harm = harmonize(monthly, coef)
+    by_year = {r["year"]: r for r in harm.to_dicts()}
+    assert by_year[2005]["harm_n"] == pytest.approx(10 * k)
+    assert by_year[2005]["harm_src"] == "modis_k"
+    assert by_year[2015]["harm_n"] == 0.0
+    assert by_year[2015]["harm_src"] == "viirs"
+    assert by_year[2016]["harm_n"] == 25
+    assert by_year[2016]["harm_src"] == "viirs"

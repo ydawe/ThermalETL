@@ -1,1 +1,404 @@
-{"region":"world","bbox":[-180,-60,180,75],"h3_resolution":5,"generated_at":"2026-11-15T11:26:21.526065+00:00","etl_version":"0.1.0","data_source":"synthetic","synthetic":true,"years":[2018,2023],"calendar_years":[2018,2019,2020,2021,2022,2023],"last_date":"2023-12-31","overlap_years":[2018,2023],"min_support":5,"filters":{"modis_confidence_min":30,"viirs_confidence":["n","h"]},"sources":{"modis":"MODIS_SP","viirs":"VIIRS_SNPP_SP"},"harmonization":"harm_n = viirs_n if viirs_n > 0 else modis_n * k(h3, month)","k_fallback":["hex","res4","res3","region"],"counts":{"detections_modis":48203,"detections_viirs":130869,"hexes":374,"monthly_rows":26880},"validation":{"holdout_year":2023,"n_cells_months":4163,"hex_k":{"mae":0.8898},"regional_k":{"mae":1.4109},"mae_improvement_vs_regional":0.3693,"note":"Synthetic land-only world demo. Real FIRMS accuracy needs backfill."},"land_mask":"ocean and major coastal boxes excluded at generation and in the app","accuracy_note":"Synthetic demo for geography/UI. Not real fire counts. Use FIRMS backfill for operational numbers.","disclaimer":"Data: NASA FIRMS (MODIS C6.1, VIIRS S-NPP). Not affiliated with or endorsed by NASA.","files":{"tiled":false}}
+{
+  "region": "world",
+  "bbox": [
+    -180.0,
+    -56.0,
+    180.0,
+    72.0
+  ],
+  "h3_resolution": 4,
+  "generated_at": "2026-11-15T14:20:58+00:00",
+  "etl_version": "0.1.0",
+  "data_source": "firms",
+  "synthetic": false,
+  "years": [
+    2000,
+    2025
+  ],
+  "calendar_years": [
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "last_date": "2025-12-31",
+  "overlap_years": [
+    2012,
+    2025
+  ],
+  "min_support": 5,
+  "filters": {
+    "modis_confidence_min": 30,
+    "viirs_confidence": [
+      "n",
+      "h"
+    ]
+  },
+  "sources": {
+    "modis": "MODIS_SP",
+    "viirs": "VIIRS_SNPP_SP",
+    "modis_nrt": "MODIS_NRT",
+    "viirs_nrt": "VIIRS_SNPP_NRT"
+  },
+  "harmonization": "harm_n = viirs_n if year >= 2012 else modis_n * k(h3, month)",
+  "k_fallback": [
+    "hex",
+    "res3",
+    "res2",
+    "region"
+  ],
+  "counts": {
+    "detections_modis": 8529742,
+    "detections_viirs": 6017563,
+    "hexes": 14160,
+    "monthly_rows": 755056
+  },
+  "k_level_counts": {
+    "hex": 77776,
+    "region": 13758,
+    "res2": 27652,
+    "res3": 50734
+  },
+  "regional_k": {
+    "overall": 0.8796,
+    "by_month": [
+      1.0234,
+      1.6423,
+      1.7921,
+      1.3763,
+      1.0809,
+      1.4523,
+      1.379,
+      0.9992,
+      0.6316,
+      0.4353,
+      0.4706,
+      0.5519
+    ]
+  },
+  "validation": {
+    "holdout_year": 2025,
+    "n_cells_months": 140,
+    "actual_viirs_total": 3466.0,
+    "hex_k": {
+      "mae": 16.5356,
+      "rel_error": 0.6679,
+      "bias": 7.9112,
+      "pred_total": 4573.56
+    },
+    "regional_k": {
+      "mae": 21.2621,
+      "rel_error": 0.8588,
+      "bias": -20.0154,
+      "pred_total": 663.85
+    },
+    "mae_improvement_vs_regional": 0.2223,
+    "k_level_counts": {
+      "hex": 105,
+      "res3": 28,
+      "res2": 7
+    },
+    "train_regional_k_overall": 0.8788
+  },
+  "summary": {
+    "years": [
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023
+    ],
+    "matrix": {
+      "2011": [
+        14923.88,
+        29308.64,
+        41473.49,
+        73167.19,
+        37545.67,
+        73314.43,
+        36419.0,
+        64304.33,
+        50248.0,
+        40915.82,
+        31349.42,
+        16840.65
+      ],
+      "2012": [
+        7237.0,
+        16725.0,
+        38610.0,
+        32535.0,
+        40307.0,
+        52674.0,
+        44162.0,
+        120397.0,
+        84803.0,
+        38416.0,
+        28910.0,
+        13076.0
+      ],
+      "2013": [
+        16272.0,
+        17123.0,
+        35555.0,
+        26739.0,
+        24323.0,
+        49311.0,
+        42842.0,
+        82401.0,
+        35082.0,
+        30880.0,
+        20442.0,
+        12828.0
+      ],
+      "2014": [
+        16474.0,
+        15598.0,
+        37191.0,
+        41460.0,
+        32067.0,
+        22438.0,
+        44041.0,
+        51777.0,
+        39590.0,
+        34104.0,
+        20668.0,
+        13542.0
+      ],
+      "2015": [
+        19338.0,
+        20921.0,
+        35190.0,
+        31283.0,
+        20911.0,
+        84521.0,
+        76940.0,
+        161537.0,
+        40636.0,
+        34556.0,
+        24563.0,
+        15594.0
+      ],
+      "2016": [
+        14770.0,
+        35571.0,
+        44427.0,
+        47514.0,
+        24118.0,
+        33819.0,
+        46458.0,
+        58866.0,
+        39383.0,
+        33491.0,
+        31142.0,
+        11088.0
+      ],
+      "2017": [
+        18144.0,
+        31055.0,
+        45251.0,
+        37783.0,
+        26917.0,
+        34884.0,
+        61956.0,
+        96352.0,
+        119646.0,
+        50843.0,
+        28914.0,
+        26979.0
+      ],
+      "2018": [
+        21433.0,
+        15124.0,
+        46597.0,
+        46095.0,
+        34458.0,
+        45801.0,
+        83081.0,
+        127212.0,
+        53242.0,
+        28480.0,
+        24464.0,
+        12956.0
+      ],
+      "2019": [
+        13090.0,
+        9602.0,
+        37934.0,
+        36406.0,
+        24174.0,
+        42509.0,
+        110820.0,
+        48882.0,
+        42309.0,
+        34214.0,
+        23970.0,
+        17240.0
+      ],
+      "2020": [
+        16279.0,
+        20674.0,
+        29102.0,
+        33350.0,
+        20527.0,
+        36686.0,
+        28656.0,
+        97923.0,
+        237002.0,
+        73146.0,
+        34106.0,
+        20113.0
+      ],
+      "2021": [
+        17079.0,
+        16614.0,
+        48692.0,
+        44081.0,
+        22836.0,
+        38141.0,
+        112164.0,
+        164630.0,
+        98321.0,
+        35129.0,
+        28693.0,
+        16556.0
+      ],
+      "2022": [
+        21081.0,
+        30266.0,
+        47429.0,
+        41121.0,
+        48253.0,
+        80233.0,
+        53837.0,
+        25670.0,
+        79164.0,
+        41045.0,
+        26336.0,
+        18625.0
+      ],
+      "2023": [
+        17464.0,
+        21757.0,
+        35920.0,
+        36080.0,
+        26393.0,
+        26178.0,
+        31655.0,
+        60211.0,
+        36616.0,
+        36862.0,
+        28966.0,
+        18928.0
+      ]
+    },
+    "monthly_median": [
+      16474.0,
+      20674.0,
+      38610.0,
+      37783.0,
+      26393.0,
+      42509.0,
+      46458.0,
+      82401.0,
+      50248.0,
+      35129.0,
+      28693.0,
+      16556.0
+    ],
+    "monthly_p90": [
+      20732.4,
+      30897.2,
+      47262.6,
+      47230.2,
+      39754.73,
+      78849.29,
+      105272.2,
+      154672.0,
+      115381.0,
+      48883.4,
+      31307.94,
+      19876.0
+    ],
+    "monthly_mean": [
+      16429.61,
+      21564.51,
+      40259.35,
+      40585.71,
+      29448.44,
+      47731.49,
+      59463.92,
+      89243.26,
+      73541.69,
+      39390.91,
+      27117.19,
+      16489.67
+    ],
+    "critical_months": [
+      8,
+      9,
+      7
+    ],
+    "critical_month_names": [
+      "Aug",
+      "Sep",
+      "Jul"
+    ],
+    "most_active_years": [
+      {
+        "year": 2020,
+        "total": 647564.0
+      },
+      {
+        "year": 2021,
+        "total": 642936.0
+      },
+      {
+        "year": 2017,
+        "total": 578724.0
+      }
+    ],
+    "season_label": "Summer (Jul–Aug) with a secondary autumn peak (Sep)",
+    "latest": {
+      "year": 2023,
+      "month": 12,
+      "value": 18928.0,
+      "median": 16556.0,
+      "p90": 19876.0,
+      "anomaly_ratio": 1.143,
+      "anomaly": "above"
+    }
+  },
+  "attribution": "Data: NASA FIRMS (MODIS C6.1, VIIRS S-NPP). Not affiliated with or endorsed by NASA.",
+  "files": {
+    "hexes": "hexes.json",
+    "coef": "coef.json",
+    "meta": "meta.json",
+    "monthly": "monthly.json.gz",
+    "tiled": false
+  },
+  "countries": [
+    "Australia",
+    "Brazil",
+    "Poland",
+    "United_States"
+  ],
+  "accuracy_note": "Real FIRMS: United States (+ other cached country CSVs) and Poland backfill. Not every nation. H3 resolution 4. Ocean hexes filtered in the app."
+}

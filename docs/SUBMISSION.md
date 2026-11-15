@@ -20,7 +20,7 @@ ThermalETL turns NASA FIRMS MODIS and VIIRS hot-spot detections into one clear f
 
 ### What it does
 
-Ordinary people struggle to compare “how many fires” across two decades because MODIS and VIIRS do not count the same way. When VIIRS starts in 2012, raw totals jump. ThermalETL builds a single harmonized series so you can explore seasons and anomalies without pretending the sensors are identical.
+Ordinary people struggle to compare “how many fires” across two decades because MODIS and VIIRS do not count the same way. When VIIRS starts in 2012, raw totals jump. ThermalETL builds a single harmonized series so you can explore seasons and anomalies without pretending the sensors are identical. Pre-2012 months use MODIS×k; from 2012 onward the series follows VIIRS even in quiet months (no MODIS back-fill). Early-2000s scaled totals can still look inflated when regional k is large (~9× in Poland)—partly real field-burning change, partly method amplification.
 
 You can:
 

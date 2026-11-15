@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ThermalETL — NASA Space Apps 2026 Demo (7 slides)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy: #0b1c2c;
+      --navy-2: #12263a;
+      --navy-3: #1a3348;
+      --ink: #e8eef4;
+      --mute: #9fb0c0;
+      --orange: #e07a2f;
+      --orange-soft: #f0a35a;
+      --teal: #2a9d8f;
+      --sky: #4e8fb5;
+      --danger: #c45c26;
+      --ok: #3d8b6e;
+      --slide-w: 13.333in;
+      --slide-h: 7.5in;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: #050d14;
+      color: var(--ink);
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    @page {
+      size: 13.333in 7.5in;
+      margin: 0;
+    }
+
+    .slide {
+      width: var(--slide-w);
+      height: var(--slide-h);
+      page-break-after: always;
+      break-after: page;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 80% 60% at 85% 15%, rgba(224, 122, 47, 0.12), transparent 55%),
+        radial-gradient(ellipse 70% 50% at 10% 90%, rgba(42, 157, 143, 0.10), transparent 50%),
+        linear-gradient(165deg, var(--navy) 0%, var(--navy-2) 55%, #0e2436 100%);
+      padding: 0.55in 0.65in 0.5in;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .slide:last-child { page-break-after: auto; break-after: auto; }
+
+    .footer {
+      position: absolute;
+      left: 0.65in;
+      right: 0.65in;
+      bottom: 0.28in;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--mute);
+      letter-spacing: 0.04em;
+    }
+    .footer .brand { color: var(--orange-soft); font-weight: 600; }
+
+    h1 {
+      font-family: "IBM Plex Serif", Georgia, serif;
+      font-weight: 700;
+      font-size: 42px;
+      line-height: 1.15;
+      color: #fff;
+      max-width: 11.5in;
+    }
+    h2 {
+      font-family: "IBM Plex Serif", Georgia, serif;
+      font-weight: 700;
+      font-size: 34px;
+      line-height: 1.2;
+      color: #fff;
+      margin-bottom: 0.28in;
+    }
+    .eyebrow {
+      color: var(--orange);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 0.18in;
+    }
+    .lede {
+      font-size: 18px;
+      line-height: 1.45;
+      color: var(--mute);
+      max-width: 10.5in;
+      margin-top: 0.2in;
+    }
+    ul.bullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.16in;
+      font-size: 18px;
+      line-height: 1.35;
+      color: var(--ink);
+    }
+    ul.bullets li {
+      padding-left: 0.32in;
+      position: relative;
+    }
+    ul.bullets li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.42em;
+      width: 0.14in;
+      height: 0.14in;
+      background: var(--orange);
+      border-radius: 2px;
+    }
+    .tag {
+      display: inline-block;
+      border: 1px solid rgba(224, 122, 47, 0.45);
+      color: var(--orange-soft);
+      padding: 0.06in 0.14in;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-right: 0.1in;
+    }
+    .meta-row {
+      margin-top: auto;
+      padding-bottom: 0.35in;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.18in;
+      align-items: center;
+      font-size: 16px;
+      color: var(--ink);
+    }
+    .meta-row strong { color: var(--orange-soft); font-weight: 600; }
+
+    /* Title */
+    .title-slide { justify-content: center; }
+    .title-slide .logo {
+      height: 64px;
+      width: auto;
+      margin-bottom: 0.35in;
+      filter: drop-shadow(0 4px 18px rgba(0,0,0,0.35));
+    }
+    .title-slide h1 { font-size: 40px; }
+    .title-slide .lede { font-size: 20px; color: #c5d3df; }
+
+    /* Two-column layouts */
+    .cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.35in;
+      flex: 1;
+      min-height: 0;
+      align-items: stretch;
+    }
+    .cols-55 { grid-template-columns: 1.15fr 0.85fr; }
+    .cols-46 { grid-template-columns: 1.25fr 0.75fr; }
+    .shot {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      background: #061018;
+    }
+    .shot-fit { object-fit: contain; background: #0a1824; }
+    .panel {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 4px;
+      padding: 0.22in;
+    }
+    .panel h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--orange-soft);
+      margin-bottom: 0.12in;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* Pipeline diagram */
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.1in;
+      margin: 0.1in 0 0.22in;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .flow .node {
+      background: var(--navy-3);
+      border: 1px solid rgba(78, 143, 181, 0.45);
+      color: var(--ink);
+      padding: 0.1in 0.14in;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+    .flow .node.accent {
+      border-color: rgba(224, 122, 47, 0.65);
+      color: var(--orange-soft);
+    }
+    .flow .arrow { color: var(--mute); font-size: 16px; }
+
+    /* Validation chart */
+    .chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.45in;
+      height: 2.4in;
+      padding: 0.15in 0.1in 0;
+      border-bottom: 2px solid rgba(255,255,255,0.15);
+    }
+    .bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+      gap: 0.08in;
+    }
+    .bar {
+      width: 1.1in;
+      border-radius: 3px 3px 0 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 0.08in;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .bar.regional { background: var(--sky); height: 100%; }
+    .bar.hex { background: var(--orange); height: 80.9%; } /* 15.538/19.2059 from poland/meta.json */
+    .bar-label { font-size: 13px; color: var(--mute); text-align: center; line-height: 1.3; }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.16in;
+      margin-top: 0.2in;
+    }
+    .stat {
+      background: rgba(255,255,255,0.04);
+      border-left: 3px solid var(--orange);
+      padding: 0.12in 0.16in;
+    }
+    .stat .n { font-size: 26px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+    .stat .l { font-size: 12px; color: var(--mute); margin-top: 2px; }
+
+    .audience {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.14in;
+      margin-bottom: 0.22in;
+    }
+    .audience .chip {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 0.14in 0.16in;
+      font-size: 15px;
+      font-weight: 600;
+      text-align: center;
+      border-radius: 3px;
+    }
+
+    .links a {
+      color: var(--orange-soft);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(240, 163, 90, 0.4);
+    }
+    .disclaimer {
+      margin-top: 0.2in;
+      font-size: 13px;
+      color: var(--mute);
+      line-height: 1.4;
+      max-width: 11in;
+    }
+
+    @media screen {
+      body { padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 28px; }
+      .slide {
+        box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+        border: 1px solid rgba(255,255,255,0.06);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Title -->
+  <section class="slide title-slide" aria-label="Slide 1 — Title">
+    <div style="display:inline-flex;align-items:center;background:#eef3f3;border-radius:6px;padding:0.1in 0.18in;margin-bottom:0.35in;">
+      <img class="logo" src="../logo.png" alt="ThermalETL logo" width="200" height="66" style="height:56px;width:auto;margin:0;" />
+    </div>
+    <p class="eyebrow">NASA Space Apps 2026 · Harmonization of MODIS and VIIRS Hot Spots</p>
+    <h1>ThermalETL: one fire history from two satellites, 2000 to today</h1>
+    <p class="lede">Understandable fire-season calendar for any area you pick on the map.</p>
+    <div class="meta-row">
+      <span class="tag">Team ThermalETL</span>
+      <span>Space Apps 2026</span>
+      <span>·</span>
+      <strong>Rzeszów</strong>
+    </div>
+    <div class="footer"><span class="brand">ThermalETL</span><span>1 / 7</span></div>
+  </section>
+
+  <!-- 2. Problem -->
+  <section class="slide" aria-label="Slide 2 — Problem">
+    <p class="eyebrow">The problem</p>
+    <h2>Two satellites, two fire counts — trends break</h2>
+    <ul class="bullets">
+      <li>MODIS (2000–, 1&nbsp;km) and VIIRS (2012–, 375&nbsp;m) count fires differently.</li>
+      <li>Raw stitch at 2012 looks like fires suddenly exploded — long-term trends are broken.</li>
+      <li>Existing tools are hard for ordinary people and often use one ratio per region.</li>
+    </ul>
+    <div class="footer"><span class="brand">ThermalETL</span><span>2 / 7</span></div>
+  </section>
+
+  <!-- 3. Solution -->
+  <section class="slide" aria-label="Slide 3 — Solution">
+    <p class="eyebrow">The solution</p>
+    <h2>Pick an area. Read the fire season in plain language.</h2>
+    <div class="cols cols-55" style="margin-top:0.05in;">
+      <div style="display:flex;flex-direction:column;gap:0.12in;min-height:0;">
+        <img class="shot" src="../screens/map_selected_hexes.png" alt="Map with selected area and H3 hexagons" />
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.12in;min-height:0;">
+        <img class="shot shot-fit" src="../screens/calendar_heatmap.png" alt="Fire calendar heatmap" style="flex:1;max-height:3.55in;" />
+        <div class="panel" style="display:flex;align-items:center;gap:0.16in;">
+          <img src="../screens/csv_export.png" alt="CSV export control" style="height:0.85in;width:auto;border-radius:3px;border:1px solid rgba(255,255,255,0.1);" />
+          <ul class="bullets" style="font-size:15px;gap:0.08in;">
+            <li>Seasons, most active years, this period vs historical median.</li>
+            <li>CSV export for the selected area.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span class="brand">ThermalETL</span><span>3 / 7</span></div>
+  </section>
+
+  <!-- 4. How it works -->
+  <section class="slide" aria-label="Slide 4 — How it works">
+    <p class="eyebrow">How it works</p>
+    <h2>Local monthly coefficients, not one country fudge factor</h2>
+    <div class="flow" aria-hidden="true">
+      <span class="node">FIRMS</span><span class="arrow">→</span>
+      <span class="node">H3 hexes</span><span class="arrow">→</span>
+      <span class="node">Monthly counts</span><span class="arrow">→</span>
+      <span class="node accent">k(hex, month)</span><span class="arrow">→</span>
+      <span class="node">Harmonized 2000–now</span><span class="arrow">→</span>
+      <span class="node">Anomaly calendar</span>
+    </div>
+    <div class="cols cols-46" style="flex:1;min-height:0;">
+      <ul class="bullets" style="font-size:16px;">
+        <li>Per-hex, per-month VIIRS÷MODIS coefficient <em>k</em>.</li>
+        <li>Fallback: parent hex → wider area → region when support is thin.</li>
+        <li>Use VIIRS when present; else MODIS × <em>k</em>.</li>
+      </ul>
+      <img class="shot shot-fit" src="../screens/hex_k_panel.png" alt="Hex panel showing monthly coefficient k" />
+    </div>
+    <div class="footer"><span class="brand">ThermalETL</span><span>4 / 7</span></div>
+  </section>
+
+  <!-- 5. Validation -->
+  <section class="slide" aria-label="Slide 5 — Validation">
+    <p class="eyebrow">Validation · poland/meta.json · real FIRMS</p>
+    <h2>Held-out year: per-hex k beats one regional ratio</h2>
+    <div class="cols" style="align-items:start;">
+      <div>
+        <p style="font-size:15px;color:var(--mute);margin-bottom:0.15in;">
+          Hold-out year <strong style="color:#fff;">2025</strong> ·
+          <strong style="color:#fff;">125</strong> hexagon-months · MAE predicting VIIRS from MODIS×k
+        </p>
+        <div class="chart" role="img" aria-label="Bar chart: regional k MAE 19.21 versus hex k MAE 15.54">
+          <div class="bar-wrap">
+            <div class="bar regional">19.21</div>
+            <div class="bar-label">Single regional<br/>ratio MAE</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar hex">15.54</div>
+            <div class="bar-label">Per-hex<br/>per-month k MAE</div>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat">
+            <div class="n">19.1%</div>
+            <div class="l">MAE improvement vs regional</div>
+          </div>
+          <div class="stat">
+            <div class="n">63.4% vs 78.3%</div>
+            <div class="l">Relative error (hex k vs regional)</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>From meta.json counts</h3>
+        <ul class="bullets" style="font-size:16px;">
+          <li>MODIS detections: 33,602</li>
+          <li>VIIRS detections: 84,707</li>
+          <li>Hexagons (H3 res 5): 2,006</li>
+          <li>Calendar years in set: 2001–2025</li>
+          <li>Regional k ≈ 9.4 · harm = VIIRS from 2012</li>
+        </ul>
+        <p style="margin-top:0.18in;font-size:13px;color:var(--mute);">
+          Source: <code style="color:var(--orange-soft);">web/public/data/poland/meta.json</code>
+        </p>
+      </div>
+    </div>
+    <div class="footer"><span class="brand">ThermalETL</span><span>5 / 7</span></div>
+  </section>
+
+  <!-- 6. Who + impact -->
+  <section class="slide" aria-label="Slide 6 — Who it's for">
+    <p class="eyebrow">Who it’s for · Impact</p>
+    <h2>Clear fire history for people who plan and protect</h2>
+    <div class="audience">
+      <div class="chip">Firefighters &amp; civil protection</div>
+      <div class="chip">Municipalities</div>
+      <div class="chip">Foresters</div>
+      <div class="chip">Insurers</div>
+      <div class="chip">Researchers</div>
+      <div class="chip">Citizens</div>
+    </div>
+    <ul class="bullets">
+      <li>Accessible, colour-blind-safe scales — no forced AI chatbot.</li>
+      <li>Open source, free stack: GitHub Actions + Vercel Hobby.</li>
+      <li>Auto-updating FIRMS pulls via GitHub Actions.</li>
+    </ul>
+    <div class="footer"><span class="brand">ThermalETL</span><span>6 / 7</span></div>
+  </section>
+
+  <!-- 7. Next steps -->
+  <section class="slide" aria-label="Slide 7 — Next steps">
+    <p class="eyebrow">Next steps · Links</p>
+    <h2>Wider coverage, more sensors, timely alerts</h2>
+    <ul class="bullets">
+      <li>Global multi-country FIRMS layer (H3 res 4) alongside Poland.</li>
+      <li>More sensors: NOAA-20 / NOAA-21 VIIRS.</li>
+      <li>Optional alerts when a month exceeds the historical median.</li>
+      <li><strong>Caveat:</strong> Poland 2002–2005 can show ~26–40k harmonized hotspots/yr vs ~5–9k later — partly real field burning, partly k≈9.4 amplifying MODIS-only years.</li>
+    </ul>
+    <div class="panel links" style="margin-top:0.28in;">
+      <h3>Try it</h3>
+      <p style="font-size:17px;line-height:1.6;">
+        Live app: <a href="https://github.com/ydawe/ThermalETL#deploy-the-frontend-on-vercel">https://github.com/ydawe/ThermalETL</a> → deploy <code>web/</code> on Vercel<br />
+        GitHub: <a href="https://github.com/ydawe/ThermalETL">https://github.com/ydawe/ThermalETL</a>
+      </p>
+    </div>
+    <p class="disclaimer">
+      Data: NASA FIRMS (MODIS C6.1, VIIRS S-NPP). Not affiliated with or endorsed by NASA.
+    </p>
+    <div class="footer"><span class="brand">ThermalETL</span><span>7 / 7</span></div>
+  </section>
+
+</body>
+</html>

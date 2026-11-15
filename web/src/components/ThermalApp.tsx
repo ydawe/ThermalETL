@@ -291,7 +291,6 @@ function Explorer({ ds }: { ds: Dataset }) {
           key={detail.h3}
           detail={detail}
           onClose={() => setActiveHex(null)}
-          onReset={resetAll}
         />
       )}
     </div>

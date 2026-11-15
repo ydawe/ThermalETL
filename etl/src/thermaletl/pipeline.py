@@ -166,7 +166,7 @@ def process(
             "modis_nrt": cfg.modis_nrt,
             "viirs_nrt": cfg.viirs_nrt,
         },
-        "harmonization": "harm_n = viirs_n if viirs_n > 0 else modis_n * k(h3, month)",
+        "harmonization": "harm_n = viirs_n if year >= 2012 else modis_n * k(h3, month)",
         "k_fallback": ["hex"] + [f"res{p}" for p in cfg.parent_fallback_levels] + ["region"],
         "counts": {
             "detections_modis": int(sensor_counts.get("MODIS", 0)),

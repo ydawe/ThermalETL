@@ -26,9 +26,12 @@ export default function SiteHeader({ hero = false }: { hero?: boolean }) {
             </p>
           )}
         </div>
-        <nav aria-label="Main" className="flex gap-5 pb-1 text-sm">
-          <Link href="/" className="text-ink-soft underline-offset-4 hover:text-ink hover:underline">
-            Explore
+        <nav aria-label="Main" className="flex flex-wrap gap-x-5 gap-y-1 pb-1 text-sm">
+          <Link href="/?region=poland" className="text-ink-soft underline-offset-4 hover:text-ink hover:underline">
+            Poland
+          </Link>
+          <Link href="/?region=world" className="text-ink-soft underline-offset-4 hover:text-ink hover:underline">
+            World
           </Link>
           <Link href="/how-it-works/" className="text-ink-soft underline-offset-4 hover:text-ink hover:underline">
             How it works
