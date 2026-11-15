@@ -4,8 +4,8 @@
 
 | Region | Source | Land filter | Notes |
 |--------|--------|-------------|-------|
-| `poland` (default) | **Real FIRMS** area API backfill | Poland mainland + Baltic/lagoon boxes | MODIS 2000– + VIIRS 2012– |
-| `world` | **Real FIRMS** country CSVs (US + cached peers) + Poland raw | Ocean / major water boxes in app | H3 res 4; not every nation |
+| `world` (default) | **Real FIRMS** country CSVs (US + cached peers) + Poland raw | Ocean / major water boxes in app | H3 res 4; not every nation |
+| `poland` | **Real FIRMS** area API backfill | Poland mainland + Baltic/lagoon boxes | MODIS 2000– + VIIRS 2012– |
 | `sample` | Synthetic | Warsaw bbox | Tiny CI fixture |
 
 ## Harmonization rule

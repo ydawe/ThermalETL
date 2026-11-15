@@ -7,6 +7,7 @@ type MapTestApi = {
 };
 
 async function waitForApp(page: Page, region = "poland") {
+  // E2E draws in the Poland bbox; production default region is world.
   await page.goto(`/?region=${region}`);
   await expect(page.getByTestId("selected-count")).toBeVisible({ timeout: 45_000 });
   await expect(page.getByTestId("hex-map-canvas")).toBeVisible();
