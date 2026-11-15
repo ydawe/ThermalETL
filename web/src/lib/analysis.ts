@@ -289,14 +289,29 @@ export function hexDetail(ds: Dataset, h3: string, range: MonthRange): HexDetail
   };
 }
 
-export const K_LEVEL_TEXT: Record<KLevel, { short: string; long: string }> = {
+const K_LEVEL_KNOWN: Record<string, { short: string; long: string }> = {
   hex: { short: "This hex", long: "Measured right here: enough overlapping MODIS and VIIRS detections in this hexagon." },
+  res5: { short: "Nearby area", long: "Borrowed from neighbouring hexagons (parent H3 res 5) because this one had too few overlapping detections." },
   res4: { short: "Nearby area", long: "Borrowed from the surrounding area (about 7 hexagons) because this one had too few overlapping detections." },
   res3: { short: "Wider area", long: "Borrowed from a wider area (about 50 hexagons) because the nearby area was still too sparse." },
+  res2: { short: "Wide area", long: "Borrowed from a very wide H3 parent because local overlap was still too sparse." },
   region: { short: "Whole region", long: "Regional average for this month: too few overlapping detections anywhere nearby." },
   region_all: { short: "Whole region (all months)", long: "Region-wide average over all months: this calendar month had too little data." },
   default: { short: "Default", long: "No overlap data at all; the ratio defaults to 1." },
 };
+
+export const K_LEVEL_TEXT: Record<string, { short: string; long: string }> = new Proxy(K_LEVEL_KNOWN, {
+  get(target, prop: string) {
+    if (prop in target) return target[prop];
+    if (typeof prop === "string" && /^res\d+$/.test(prop)) {
+      return {
+        short: `Parent ${prop}`,
+        long: `Borrowed from parent hexagons at H3 ${prop} because this cell had too few overlapping detections.`,
+      };
+    }
+    return target.default;
+  },
+});
 
 export function csvForSelection(ds: Dataset, cells: string[], range: MonthRange, cal: AreaCalendar): string {
   const header = ["year", "month", "modis_n", "viirs_n", "harm_n", "k_avg", "median", "anomaly_ratio"];

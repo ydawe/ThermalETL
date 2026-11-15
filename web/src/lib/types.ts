@@ -1,6 +1,7 @@
 export type Metric = "harm" | "modis" | "viirs";
 
-export type KLevel = "hex" | "res4" | "res3" | "region" | "region_all" | "default";
+/** Includes dynamic parent levels like res5 / res2 from ETL fallbacks. */
+export type KLevel = string;
 
 export interface HexInfo {
   h3: string;

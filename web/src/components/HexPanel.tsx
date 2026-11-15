@@ -4,14 +4,20 @@ import { useEffect, useId, useRef, useState } from "react";
 import { fmt, K_LEVEL_TEXT, MONTHS_LONG, MONTHS_SHORT, type HexDetail } from "@/lib/analysis";
 import type { KLevel } from "@/lib/types";
 
-const LEVEL_STYLE: Record<KLevel, { fill: string; text: string }> = {
+const LEVEL_STYLE: Record<string, { fill: string; text: string }> = {
   hex: { fill: "#1f5f78", text: "#ffffff" },
+  res5: { fill: "#3d7a8f", text: "#ffffff" },
   res4: { fill: "#5f9bb0", text: "#13262f" },
   res3: { fill: "#a9c9d4", text: "#13262f" },
+  res2: { fill: "#c5d9e0", text: "#13262f" },
   region: { fill: "#d6c4b8", text: "#13262f" },
   region_all: { fill: "#d6c4b8", text: "#13262f" },
   default: { fill: "#e2e2e2", text: "#13262f" },
 };
+
+function styleFor(level: KLevel): { fill: string; text: string } {
+  return LEVEL_STYLE[level] ?? LEVEL_STYLE.default;
+}
 
 export default function HexPanel({
   detail,
@@ -20,10 +26,15 @@ export default function HexPanel({
   detail: HexDetail;
   onClose: () => void;
 }) {
-  const [month, setMonth] = useState(() => detail.medians.indexOf(Math.max(...detail.medians)));
-  const maxK = Math.max(...detail.k, 1);
-  const level = detail.level[month];
-  const levels = Array.from(new Set(detail.level));
+  const [month, setMonth] = useState(() => {
+    const med = detail.medians.length ? detail.medians : [0];
+    const peak = Math.max(...med);
+    const idx = med.indexOf(peak);
+    return idx >= 0 ? idx : 0;
+  });
+  const maxK = Math.max(1, ...(detail.k.length ? detail.k : [1]));
+  const level = detail.level[month] ?? "default";
+  const levels = Array.from(new Set(detail.level.length ? detail.level : ["default"]));
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -110,15 +121,16 @@ export default function HexPanel({
           className="mt-3 flex h-36 items-end gap-1"
         >
           {detail.k.map((k, i) => {
-            const s = LEVEL_STYLE[detail.level[i]];
+            const s = styleFor(detail.level[i] ?? "default");
             const selected = i === month;
+            const levelLabel = K_LEVEL_TEXT[detail.level[i] ?? "default"].short;
             return (
               <button
                 key={i}
                 type="button"
                 role="radio"
                 aria-checked={selected}
-                aria-label={`${MONTHS_LONG[i]}: k ${fmt(k, 2)}, from ${K_LEVEL_TEXT[detail.level[i]].short}, based on ${detail.support[i]} MODIS detections`}
+                aria-label={`${MONTHS_LONG[i]}: k ${fmt(k, 2)}, from ${levelLabel}, based on ${detail.support[i]} MODIS detections`}
                 onClick={() => setMonth(i)}
                 onKeyDown={(e) => {
                   const next =
@@ -160,15 +172,15 @@ export default function HexPanel({
         <div className="mt-3 border-t border-ink/10 pt-3" aria-live="polite">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-semibold text-ink">
-              {MONTHS_LONG[month]}: k = {fmt(detail.k[month], 2)}
+              {MONTHS_LONG[month]}: k = {fmt(detail.k[month] ?? 0, 2)}
             </span>
             <span
               className="px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
-              style={{ backgroundColor: LEVEL_STYLE[level].fill, color: LEVEL_STYLE[level].text }}
+              style={{ backgroundColor: styleFor(level).fill, color: styleFor(level).text }}
             >
               {K_LEVEL_TEXT[level].short}
             </span>
-            <span className="text-xs text-ink-mute">support {detail.support[month]}</span>
+            <span className="text-xs text-ink-mute">support {detail.support[month] ?? 0}</span>
           </div>
           <p className="mt-1 text-sm text-ink-soft">{K_LEVEL_TEXT[level].long}</p>
         </div>
@@ -176,7 +188,7 @@ export default function HexPanel({
         <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-ink-mute" aria-label="Bar colours">
           {levels.map((l) => (
             <li key={l} className="inline-flex items-center gap-1">
-              <span className="h-2.5 w-2.5" style={{ backgroundColor: LEVEL_STYLE[l].fill }} aria-hidden />
+              <span className="h-2.5 w-2.5" style={{ backgroundColor: styleFor(l).fill }} aria-hidden />
               {K_LEVEL_TEXT[l].short}
             </li>
           ))}
