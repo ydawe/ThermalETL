@@ -13,12 +13,13 @@ const VIRIDIS: RGB[] = [
   [253, 231, 37],
 ];
 
-/** ColorBrewer RdBu (7-class, reversed): colour-blind-safe diverging, blue = fewer, red = more. */
+/** ColorBrewer RdBu (7-class, reversed): colour-blind-safe diverging, blue = fewer, red = more.
+ * Mid stop is a warm ash (not pure white) so "about usual" cells stay visible on the cream page. */
 const DIVERGING: RGB[] = [
   [33, 102, 172],
   [103, 169, 207],
   [209, 229, 240],
-  [247, 247, 247],
+  [214, 208, 198],
   [253, 219, 199],
   [239, 138, 98],
   [178, 24, 43],

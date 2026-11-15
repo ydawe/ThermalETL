@@ -108,11 +108,12 @@ function sumRows(ds: Dataset, cells: string[], key: number) {
 /**
  * Year × month calendar for the selected cells. The median baseline uses every
  * available year (not just the selected range) so "usual" stays stable.
+ * The grid only shows years that overlap the selected dates.
  */
 export function areaCalendar(ds: Dataset, cells: string[], metric: Metric, range: MonthRange): AreaCalendar {
-  const years = ds.meta.calendar_years;
+  const allYears = ds.meta.calendar_years;
   const last = lastDataKey(ds);
-  const raw = years.map((year) =>
+  const rawAll = allYears.map((year) =>
     MONTHS_SHORT.map((_, i) => {
       const key = monthKey(year, i + 1);
       const sums = sumRows(ds, cells, key);
@@ -121,10 +122,10 @@ export function areaCalendar(ds: Dataset, cells: string[], metric: Metric, range
     }),
   );
   const med = MONTHS_SHORT.map((_, m) =>
-    median(raw.map((row) => row[m].value).filter((v): v is number => v !== null)),
+    median(rawAll.map((row) => row[m].value).filter((v): v is number => v !== null)),
   );
   const mean = MONTHS_SHORT.map((_, m) => {
-    const vals = raw.map((row) => row[m].value).filter((v): v is number => v !== null);
+    const vals = rawAll.map((row) => row[m].value).filter((v): v is number => v !== null);
     return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
   });
   const critical = med
@@ -134,6 +135,12 @@ export function areaCalendar(ds: Dataset, cells: string[], metric: Metric, range
     .slice(0, 3)
     .map((x) => x.m)
     .sort((a, b) => a - b);
+  const raw = rawAll.filter((row) => {
+    const y0 = monthKey(row[0].year, 1);
+    const y1 = monthKey(row[0].year, 12);
+    return y1 >= range.from && y0 <= range.to;
+  });
+  const years = raw.map((row) => row[0].year);
   const grid: CalendarCell[][] = raw.map((row) =>
     row.map((c) => ({
       ...c,

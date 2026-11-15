@@ -168,7 +168,8 @@ export default function FireCalendar({ cal, metricLabel }: { cal: AreaCalendar; 
       </div>
       <p id="calendar-help" className="mt-3 text-xs text-ink-mute">
         Use arrow keys to move between months. Bold month names are this area&apos;s three busiest months
-        (outlined cells). Faded cells fall outside your selected dates; hatched cells have no data yet.
+        (dark outline). Warm ash = about usual; blue = fewer; red = more. Faded cells fall outside your
+        selected dates; hatched cells have no data yet.
       </p>
       <div className="mt-3">
         <AnomalyLegend />

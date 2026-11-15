@@ -9,10 +9,10 @@ export class DataError extends Error {
   }
 }
 
-async function fetchOk(url: string, signal?: AbortSignal): Promise<Response> {
+async function fetchOk(url: string, signal?: AbortSignal, cache: RequestCache = "default"): Promise<Response> {
   let res: Response;
   try {
-    res = await fetch(url, { signal });
+    res = await fetch(url, { signal, cache });
   } catch (err) {
     if ((err as Error).name === "AbortError") throw err;
     throw new DataError(`Network error while loading ${url}`);
@@ -21,8 +21,8 @@ async function fetchOk(url: string, signal?: AbortSignal): Promise<Response> {
   return res;
 }
 
-async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
-  const res = await fetchOk(url, signal);
+async function fetchJson<T>(url: string, signal?: AbortSignal, cache?: RequestCache): Promise<T> {
+  const res = await fetchOk(url, signal, cache);
   return (await res.json()) as T;
 }
 
@@ -97,17 +97,20 @@ function indexMonthly(file: MonthlyFile): Map<string, Map<number, MonthlyRow>> {
 
 /** Small files first so the UI can render the map while the monthly table is still decompressing. */
 export async function loadMeta(region: string, signal?: AbortSignal): Promise<Meta> {
-  return fetchJson<Meta>(dataUrl(region, "meta.json"), signal);
+  // Always revalidate meta so a new ETL publish is noticed; other files use ?v=generated_at.
+  return fetchJson<Meta>(dataUrl(region, "meta.json"), signal, "no-cache");
 }
 
 export async function loadDataset(region: string, meta: Meta, signal?: AbortSignal): Promise<Dataset> {
   if (meta.files?.tiled) {
     throw new DataError("This region uses tiled data, which this build does not read yet.");
   }
+  // Bust CDN / browser cache after each ETL publish (meta.generated_at changes).
+  const v = `?v=${encodeURIComponent(meta.generated_at || "1")}`;
   const [hexesFile, coef, monthly] = await Promise.all([
-    fetchJson<HexesFile>(dataUrl(region, "hexes.json"), signal),
-    fetchJson<CoefFile>(dataUrl(region, "coef.json"), signal),
-    fetchGzJson<MonthlyFile>(dataUrl(region, "monthly.json.gz"), signal),
+    fetchJson<HexesFile>(dataUrl(region, `hexes.json${v}`), signal),
+    fetchJson<CoefFile>(dataUrl(region, `coef.json${v}`), signal),
+    fetchGzJson<MonthlyFile>(dataUrl(region, `monthly.json.gz${v}`), signal),
   ]);
   // Drop Baltic / lagoon hexes so the fire grid does not sit on open water.
   const hexes = filterLandHexes(region, hexesFile.hexes);
