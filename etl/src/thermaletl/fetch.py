@@ -27,6 +27,23 @@ COUNTRY_NAMES = {"POL": "Poland"}
 RETRY_STATUS = {429, 500, 502, 503, 504}
 
 
+def _prefer_ipv4() -> None:
+    """FIRMS is dual-stack; some hosts (esp. GitHub runners) have no IPv6 egress.
+
+    Without this, urllib3 may pick an AAAA address and fail with Errno 101
+    Network is unreachable while IPv4 would work.
+    """
+    try:
+        import urllib3.util.connection as conn
+
+        conn.HAS_IPV6 = False
+    except Exception:  # noqa: BLE001 — best-effort; workflow also disables IPv6
+        pass
+
+
+_prefer_ipv4()
+
+
 class MissingMapKeyError(RuntimeError):
     pass
 
